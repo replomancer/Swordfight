@@ -1,13 +1,15 @@
-# swordfight
+# Swordfight
 
-A Clojure library designed to ... well, that part is up to you.
+"A game of chess is like a sword fight. You must think first before you move." (Shaolin vs Wutang)
+
+This is going to be a chess engine.
+
+It's for fun. I know Clojure is not a good choice for a chess engine.
 
 ## Usage
 
-FIXME
+You can't use it yet :(
 
 ## License
 
-Copyright © 2015 FIXME
-
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the 2-clause BSD license.
