@@ -34,6 +34,12 @@ Universal Chess Interface or other protocols in the future.
 
 ## Did you know?
 
+The field of computer chess started with
+[*Programming a Computer for Playing Chess*](http://archive.computerhistory.org/projects/chess/related_materials/text/2-0%20and%202-1.Programming_a_computer_for_playing_chess.shannon/2-0%20and%202-1.Programming_a_computer_for_playing_chess.shannon.062303002.pdf),
+a 1950 paper by [Claude Shannon](http://en.wikipedia.org/wiki/Claude_Shannon). Why is it that old papers are better than new ones? I don't know.
+
+Did you know that the number of possible positions in chess is bigger than the number of atoms in the observable universe? That's a lot of positions!
+
 I think unicode chess pieces look pretty neat!
 
 ♜ ♖ ♞ ♘ ♝ ♗ ♛ ♕ ♚ ♔ ♟ ♙
