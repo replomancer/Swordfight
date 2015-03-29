@@ -21,7 +21,7 @@ It's for fun. I know Clojure is not a good choice for a chess engine.
    and resigns after your third move. If you run `xboard -debug` there will be some debugging info
    in the `xboard.debug` file.
 
-![XBoard window](http://github.com/evalapply/Swordfight/tree/master/doc/mexican_defense.png)
+![XBoard window](https://raw.githubusercontent.com/evalapply/Swordfight/master/doc/mexican_defense.png)
 
 
 You can also play without a GUI by running `lein run` and using a command line interface
