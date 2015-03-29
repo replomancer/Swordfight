@@ -1,5 +1,5 @@
 (ns swordfight.cecp
-  (:use [swordfight.game-rules :only [empty-board move put-piece]]))
+  (:use [swordfight.game-rules :only [black? empty-board initial-game-state move pos2idx put-piece]]))
 
 (defn xboard [game-state game-settings _]
   [game-state
@@ -49,6 +49,23 @@
                    game-settings
                    ""]))))
 
+(defn new [game-state game-settings _]
+  [initial-game-state game-settings ""])
+
+
+(defn mexican-defense [game-state game-settings _]
+  (if (black? ((:board game-state) (pos2idx "b8")))
+    [(assoc game-state :board (move (:board game-state) "b8" "c6"))
+     game-settings
+     "move b8c6"]
+    (if (black? ((:board game-state) (pos2idx "g8")))
+      [(assoc game-state :board (move (:board game-state) "g8" "f6"))
+       game-settings
+       "move g8f6"]
+      [game-state
+       game-settings
+       "tellopponent Good Game! I give up.\nresign"])))
+
 
 (defn ignore [game-state game-settings cmd-vector]
   [game-state game-settings (str "#\n#    COMMAND IGNORED: " cmd-vector "\n#")])
@@ -60,9 +77,10 @@
     (let [cmd (get cmd-vector 0)
           cmd-fun-mapping {"quit" quit
                            "xboard" xboard
-                           "edit" edit}
+                           "edit" edit
+                           "new" new}
           cmd-fun (if (and (= (count cmd) 4) ;; FIXME: notation parsing
                            (Character/isDigit (.charAt cmd 1)))
-                    MOVE
+                    (comp #(apply mexican-defense %)  MOVE)
                     (get cmd-fun-mapping cmd ignore))]
       (cmd-fun game-state game-settings cmd-vector))))

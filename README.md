@@ -13,12 +13,15 @@ It's for fun. I know Clojure is not a good choice for a chess engine.
    later).
 3. Install [XBoard](https://www.gnu.org/software/xboard/) (should be available
    in your favorite package manager).
-4. Run `xboard -debug` and choose `Engine -> Load New 1st Engine`.
+4. Run `xboard` and choose `Engine -> Load New 1st Engine`.
    To add Swordfight as a new engine you need to point to the repo directory
    and set `lein run` as command. This will make Swordfight play as black.
 5. Play your first move.
-6. Swordfight doesn't crash! And you can read what happened in the `xboard.debug`
-   file. I promise it will do more soon.
+6. Swordfight plays a Mexican Defense (a.k.a. Kevitz–Trajkovic Defense a.k.a. Black Knights' Tango)
+   and resigns after your third move. If you run `xboard -debug` there will be some debugging info
+   in the `xboard.debug` file.
+
+That's it for now...
 
 ## Protocol
 
