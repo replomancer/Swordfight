@@ -58,13 +58,11 @@
   (if (:edit-mode game-state)
     (eval-edit-command game-state game-settings cmd-vector)
     (let [cmd (get cmd-vector 0)
-          cmd-fun (cond (= cmd "quit") quit
-                        (= cmd "xboard") xboard
-                        (= cmd "edit") edit
-                        (= cmd "post") ignore ;; TODO
-                        (= cmd "hard") ignore ;; TODO
-                        (= cmd "easy") ignore ;; TODO
-                        (and (= (count cmd) 4) ;; FIXME: notation parsing
-                             (Character/isDigit (.charAt cmd 1))) MOVE
-                        :else ignore)]
+          cmd-fun-mapping {"quit" quit
+                           "xboard" xboard
+                           "edit" edit}
+          cmd-fun (if (and (= (count cmd) 4) ;; FIXME: notation parsing
+                           (Character/isDigit (.charAt cmd 1)))
+                    MOVE
+                    (get cmd-fun-mapping cmd ignore))]
       (cmd-fun game-state game-settings cmd-vector))))

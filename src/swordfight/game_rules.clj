@@ -42,7 +42,6 @@
     [(assoc board index empty-square) piece]))
 
 (defn put-piece [board position piece]
-  (print "piece:" piece)
   (let [index (pos2idx position)]
     (assoc board index piece)))
 
