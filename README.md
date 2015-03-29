@@ -1,6 +1,7 @@
 # Swordfight
 
-"*A game of chess is like a sword fight. You must think first before you move.*" (Shaolin vs Wutang)
+"*A game of chess is like a sword fight. You must think first before you move.*"
+([Shaolin and Wu Tang](https://en.wikipedia.org/wiki/Shaolin_and_Wu_Tang))
 
 This is going to be a chess engine. No GUI, just a chess AI.
 
