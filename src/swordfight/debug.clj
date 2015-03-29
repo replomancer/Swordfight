@@ -14,9 +14,16 @@
    "WK" "♔"
    "B " "♟"
    "W " "♙"
-   "  " "  "
+   "  " " "
    })
 
 (defn show-board [board]
+  (println)
   (dotimes [row 8]
-    (println (map pretty-unicode-piece (take 8 (drop (* row 8) board))))))
+    (print (- 8 row) " ")
+    (apply print (map pretty-unicode-piece (take 8 (drop (* row 8) board))))
+    (println))
+  (println)
+  (print "   ")
+  (println \a \b \c \d \e \f \g \h)
+  (println))
