@@ -1,6 +1,5 @@
 (ns swordfight.cecp
-  (:use [swordfight.game-rules :only [move]]))
-
+  (:use [swordfight.game-rules :only [empty-board move put-piece]]))
 
 (defn xboard [game-state game-settings _]
   [game-state
@@ -22,9 +21,50 @@
      game-settings
      ""]))
 
+
+(defn edit [game-state game-settings cmd-vector]
+  [(assoc game-state :edit-mode true) game-settings ""])
+
+
+(defn eval-edit-command [game-state game-settings cmd-vector]
+  (let [cmd (first cmd-vector)]
+    (cond (= cmd "c") (let [flip-color (fn [col] (if (= col \W) \B \W))]
+                        [game-state
+                         (assoc game-settings :edition-current-color
+                                (flip-color (:edition-current-color game-settings)))
+                         ""])
+          (= cmd "#") [(assoc game-state :board empty-board)
+                       game-settings
+                       ""]
+          (= cmd ".") [(assoc game-state :edit-mode false)
+                       game-settings
+                       ""]
+          :else (let [piece-type (.toUpperCase (subs cmd 0 1))
+                      pos (subs cmd 1 3)]
+                  [(assoc game-state :board (put-piece (:board game-state)
+                                                       pos
+                                                       (str
+                                                        (:edition-current-color game-settings)
+                                                        piece-type)))
+                   game-settings
+                   ""]))))
+
+
+(defn ignore [game-state game-settings cmd-vector]
+  [game-state game-settings (str "#\n#    COMMAND IGNORED: " cmd-vector "\n#")])
+
+
 (defn eval-command [game-state game-settings cmd-vector]
-  (let [cmd (get cmd-vector 0)
-        cmd-fun (cond (= cmd "quit") quit
-                      (= cmd "xboard") xboard
-                      :else MOVE)]
-    (cmd-fun game-state game-settings cmd-vector)))
+  (if (:edit-mode game-state)
+    (eval-edit-command game-state game-settings cmd-vector)
+    (let [cmd (get cmd-vector 0)
+          cmd-fun (cond (= cmd "quit") quit
+                        (= cmd "xboard") xboard
+                        (= cmd "edit") edit
+                        (= cmd "post") ignore ;; TODO
+                        (= cmd "hard") ignore ;; TODO
+                        (= cmd "easy") ignore ;; TODO
+                        (and (= (count cmd) 4) ;; FIXME: notation parsing
+                             (Character/isDigit (.charAt cmd 1))) MOVE
+                        :else ignore)]
+      (cmd-fun game-state game-settings cmd-vector))))

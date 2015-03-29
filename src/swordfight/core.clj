@@ -1,12 +1,13 @@
 (ns swordfight.core
   (:gen-class)
   (:use [swordfight.cecp :only [eval-command]]
-        [swordfight.debug :only [show-board]]
-        [swordfight.game-rules :only [initial-board]]))
+        [swordfight.debug :only [print-debug-output]]
+        [swordfight.game-rules :only [initial-game-state]]))
 
 
 (def initial-settings {:xboard-mode false
-                       :debug-mode true})
+                       :debug-mode true
+                       :edition-current-color \W})
 
 
 (defn receive-command []
@@ -22,13 +23,11 @@
 
 (defn -main
   [& args]
-  (loop [game-state {:board initial-board :turn "white"}
+  (loop [game-state initial-game-state
          game-settings initial-settings]
-    (if (:debug-mode game-settings)
-      (do
-        (println game-settings)
-        (show-board (:board game-state))))
-    (if-not (:xboard-mode game-settings)
+    (when (:debug-mode game-settings)
+      (print-debug-output game-state game-settings))
+    (when-not (:xboard-mode game-settings)
       (print "> "))
     (flush)
     (let [[game-state' game-settings'] (->> (receive-command)

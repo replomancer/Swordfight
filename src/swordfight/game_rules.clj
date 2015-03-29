@@ -10,6 +10,15 @@
    "W "  "W "  "W "  "W "  "W "  "W "  "W "  "W "
    "WR"  "WN"  "WB"  "WQ"  "WK"  "WB"  "WN"  "WR"])
 
+(def empty-square "  ")
+
+(def empty-board
+  (for [_ (range 64)]
+    empty-square))
+
+(def initial-game-state {:board initial-board
+                         :turn "white"})
+
 (def squares
   ["a8" "b8" "c8" "d8" "e8" "f8" "g8" "h8"
    "a7" "b7" "c7" "d7" "e7" "f7" "g7" "h7"
@@ -24,10 +33,19 @@
 
 (defn black? [piece] (= (first piece) \B))
 
-(def empty-square "  ")
+(defn pos2idx [pos]
+  (.indexOf squares pos))
 
-(defn move [board from to]
-  (let [pos_from (.indexOf squares from)
-        pos_to (.indexOf squares to)]
-    (assoc (assoc board pos_to (board pos_from)) pos_from empty-square)))
+(defn remove-piece [board position]
+  (let [index (pos2idx position)
+        piece (board index)]
+    [(assoc board index empty-square) piece]))
 
+(defn put-piece [board position piece]
+  (print "piece:" piece)
+  (let [index (pos2idx position)]
+    (assoc board index piece)))
+
+(defn move [board from-pos to-pos]
+  (let [[board' piece] (remove-piece board from-pos)]
+    (put-piece board' to-pos piece)))
