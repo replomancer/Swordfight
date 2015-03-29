@@ -21,7 +21,88 @@ It's for fun. I know Clojure is not a good choice for a chess engine.
    and resigns after your third move. If you run `xboard -debug` there will be some debugging info
    in the `xboard.debug` file.
 
-That's it for now...
+![XBoard window](http://github.com/evalapply/Swordfight/tree/master/doc/mexican_defense.png)
+
+
+You can also play without a GUI by running `lein run` and using a command line interface
+like in the session below (user input is after the `>` prompt):
+
+```
+# {:edition-current-color W, :debug-mode true, :xboard-mode false}
+# {:turn white}
+#
+# 8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+# 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+# 6                 
+# 5                 
+# 4                 
+# 3                 
+# 2  ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+# 1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+#
+#    a b c d e f g h
+#
+> d2d4
+move b8c6
+# {:edition-current-color W, :debug-mode true, :xboard-mode false}
+# {:turn white}
+#
+# 8  ♜   ♝ ♛ ♚ ♝ ♞ ♜
+# 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+# 6      ♞          
+# 5                 
+# 4        ♙        
+# 3                 
+# 2  ♙ ♙ ♙   ♙ ♙ ♙ ♙
+# 1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+#
+#    a b c d e f g h
+#
+> e2e3
+move g8f6
+# {:edition-current-color W, :debug-mode true, :xboard-mode false}
+# {:turn white}
+#
+# 8  ♜   ♝ ♛ ♚ ♝   ♜
+# 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+# 6      ♞     ♞    
+# 5                 
+# 4        ♙        
+# 3          ♙      
+# 2  ♙ ♙ ♙     ♙ ♙ ♙
+# 1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+#
+#    a b c d e f g h
+#
+> b1c3
+tellopponent Good Game! I give up.
+resign
+# {:edition-current-color W, :debug-mode true, :xboard-mode false}
+# {:turn white}
+#
+# 8  ♜   ♝ ♛ ♚ ♝   ♜
+# 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+# 6      ♞     ♞    
+# 5                 
+# 4        ♙        
+# 3      ♘   ♙      
+# 2  ♙ ♙ ♙     ♙ ♙ ♙
+# 1  ♖   ♗ ♕ ♔ ♗ ♘ ♖
+#
+#    a b c d e f g h
+#
+>
+```
+
+A monospaced font in your terminal is highly recommended for the debug output (chess board).
+The engine currently doesn't check if moves are legal, so you can move any piece or even
+empty square anywhere.
+
+I think the unicode chess pieces look pretty neat!
+
+♜ ♖ ♞ ♘ ♝ ♗ ♛ ♕ ♚ ♔ ♟ ♙
+
+Depending on the terminal the colors may be confusing. ♜ is black.
 
 ## Protocol
 
@@ -39,12 +120,6 @@ The field of computer chess started with
 a 1950 paper by [Claude Shannon](http://en.wikipedia.org/wiki/Claude_Shannon). Why is it that old papers are better than new ones? I don't know.
 
 Did you know that the number of possible positions in chess is bigger than the number of atoms in the observable universe? That's a lot of positions!
-
-I think unicode chess pieces look pretty neat!
-
-♜ ♖ ♞ ♘ ♝ ♗ ♛ ♕ ♚ ♔ ♟ ♙
-
-Depending on the terminal the colors may be confusing. ♜ is black.
 
 ## License
 
