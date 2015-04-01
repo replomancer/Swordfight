@@ -54,11 +54,11 @@
 
 
 (defn mexican-defense [game-state game-settings _]
-  (if (black? ((:board game-state) (pos2idx "b8")))
+  (if (black? (((:board game-state) 0) 1)) ;; b8
     [(assoc game-state :board (move (:board game-state) "b8" "c6"))
      game-settings
      "move b8c6"]
-    (if (black? ((:board game-state) (pos2idx "g8")))
+    (if (black? (((:board game-state) 0) 6)) ;; g8
       [(assoc game-state :board (move (:board game-state) "g8" "f6"))
        game-settings
        "move g8f6"]

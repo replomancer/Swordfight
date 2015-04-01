@@ -21,8 +21,7 @@
   (println "#")
   (dotimes [row 8]
     (print "#" (- 8 row) " ")
-    (apply print (map pretty-unicode-piece
-                      (take 8 (drop (* row 8) board))))
+    (apply print (map pretty-unicode-piece (board row)))
     (println))
   (println "#")
   (print "#    ")
