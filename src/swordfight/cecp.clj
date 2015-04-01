@@ -1,5 +1,7 @@
 (ns swordfight.cecp
-  (:use [swordfight.game-rules :only [black? empty-board initial-game-state move pos2idx put-piece]]))
+  (:use [swordfight.game-rules :only [black? empty-board initial-game-state move put-piece
+                                      legal-destination-indexes]]
+        [swordfight.ai :only [mexican-defense]]))
 
 (defn xboard [game-state game-settings _]
   [game-state
@@ -52,21 +54,6 @@
 (defn new [game-state game-settings _]
   [initial-game-state game-settings ""])
 
-
-(defn mexican-defense [game-state game-settings _]
-  (if (black? (((:board game-state) 0) 1)) ;; b8
-    [(assoc game-state :board (move (:board game-state) "b8" "c6"))
-     game-settings
-     "move b8c6"]
-    (if (black? (((:board game-state) 0) 6)) ;; g8
-      [(assoc game-state :board (move (:board game-state) "g8" "f6"))
-       game-settings
-       "move g8f6"]
-      [game-state
-       game-settings
-       "tellopponent Good Game! I give up.\nresign"])))
-
-
 (defn ignore [game-state game-settings cmd-vector]
   [game-state game-settings (str "#\n#    COMMAND IGNORED: " cmd-vector "\n#")])
 
@@ -81,6 +68,6 @@
                            "new" new}
           cmd-fun (if (and (= (count cmd) 4) ;; FIXME: notation parsing
                            (Character/isDigit (.charAt cmd 1)))
-                    (comp #(apply mexican-defense %)  MOVE)
+                    (comp #(apply mexican-defense %) MOVE)
                     (get cmd-fun-mapping cmd ignore))]
       (cmd-fun game-state game-settings cmd-vector))))
