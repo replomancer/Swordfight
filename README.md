@@ -19,8 +19,10 @@ It's for fun. I know Clojure is not a good choice for a chess engine.
    and set `lein run` as command. This will make Swordfight play as black.
 5. Play your first move.
 6. Swordfight plays a Mexican Defense (a.k.a. Kevitz–Trajkovic Defense a.k.a. Black Knights' Tango)
-   and resigns after your third move. If you run `xboard -debug` there will be some debugging info
-   in the `xboard.debug` file.
+   and after your third move it starts moving knights randomly. When checked it still tries a
+   move with the knights which in general is illegal (XBoard displays useful messages).
+   The engine resigns form further game after losing the knights.
+   If you run `xboard -debug` there will be some debugging info in the `xboard.debug` file.
 
 ![XBoard window](https://raw.githubusercontent.com/evalapply/Swordfight/master/doc/mexican_defense.png)
 
