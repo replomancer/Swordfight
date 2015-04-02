@@ -99,11 +99,11 @@
 (defn remove-piece [board position]
   (let [[y x] (board-coords position)
         piece ((board y) x)]
-    [(assoc board y (assoc (board y) x empty-square)) piece]))
+    [(update-in board [y x] (fn [_] empty-square)) piece]))
 
 (defn put-piece [board position piece]
   (let [[y x] (board-coords position)]
-    (assoc board y (assoc (board y) x piece))))
+    (update-in board [y x] (fn [_] piece))))
 
 (defn move [board from-pos to-pos]
   (let [[board' piece] (remove-piece board from-pos)]

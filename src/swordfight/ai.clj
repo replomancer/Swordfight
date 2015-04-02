@@ -14,7 +14,7 @@
          "move g8f6"]
         (let [some-moves
                 (map (fn [coords] [coords (legal-destination-indexes board coords "BN" nil)])
-                     (filter (complement nil?)
+                     (remove nil?
                              (for [y (range 8)
                                    x (range 8)]
                                (when (= ((board y) x) "BN")
@@ -25,7 +25,7 @@
                     square-to (board-coords (rand-nth (second piece-moves)))]
                 [(assoc game-state :board (move board square-from square-to))
                  game-settings
-                 (str "tellopponent Wait! He isn't dead! Mexican Surprise!\n move " square-from square-to)])
+                 (str "move " square-from square-to)])
               [game-state
                game-settings
                "tellopponent Good Game! I give up.\nresign"]))))))

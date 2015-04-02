@@ -5,8 +5,7 @@
 
 (defn xboard [game-state game-settings _]
   [game-state
-   (assoc game-settings :xboard-mode
-          (not (:xboard-mode game-settings)))
+   (update-in game-settings [:xboard-mode] not)
    ""])
 
 
@@ -18,8 +17,7 @@
   (let [algebraic-notation (first cmd-vector)
         pos1 (subs algebraic-notation 0 2) ;; FIXME: notation parsing
         pos2 (subs algebraic-notation 2 4)]
-    [(assoc game-state :board
-            (move (:board game-state) pos1 pos2))
+    [(update-in game-state [:board] move pos1 pos2)
      game-settings
      ""]))
 
@@ -32,8 +30,8 @@
   (let [cmd (first cmd-vector)]
     (cond (= cmd "c") (let [flip-color (fn [col] (if (= col \W) \B \W))]
                         [game-state
-                         (assoc game-settings :edition-current-color
-                                (flip-color (:edition-current-color game-settings)))
+                         (update-in game-settings [:edition-current-color]
+                                    flip-color)
                          ""])
           (= cmd "#") [(assoc game-state :board empty-board)
                        game-settings
@@ -43,11 +41,10 @@
                        ""]
           :else (let [piece-type (.toUpperCase (subs cmd 0 1))
                       pos (subs cmd 1 3)]
-                  [(assoc game-state :board (put-piece (:board game-state)
-                                                       pos
-                                                       (str
-                                                        (:edition-current-color game-settings)
-                                                        piece-type)))
+                  [(update-in game-state [:board]
+                              put-piece pos (str (:edition-current-color
+                                                  game-settings)
+                                                 piece-type))
                    game-settings
                    ""]))))
 
