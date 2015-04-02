@@ -46,6 +46,11 @@
   (= (color piece1) (color piece2)))
   ;; two empty squares also have the same color
 
+(defn opposite-color? [piece1 piece2]
+  (let [colors (map color [piece1 piece2])]
+    (or (= colors [\B \W])
+        (= colors [\W \B]))))
+
 (defn on-board? [[y x]]
   (when (and (<= 0 y 7) (<= 0 x 7))
     [y x]))
@@ -84,6 +89,36 @@
           (map #(map + square-coords %)
                [[-2 -1] [-1 -2] [+1 -2] [+2 -1]
                 [-2 +1] [-1 +2] [+1 +2] [+2 +1]])))
+
+
+;; FIXME: refactor this
+(defmethod legal-destination-indexes \R [board square-coords piece _]
+  (let [non-blocked-square?
+        (fn [[dy dx] [y x]]
+          (and (on-board? [y x])
+               (let [square-piece ((board y) x)]
+                 (and (not (same-color? piece square-piece))
+                      (let [[prev-square-y prev-square-x] (map - [y x] [dy dx])
+                            prev-square-piece ((board prev-square-y) prev-square-x)]
+                        (or (empty-square? prev-square-piece)
+                            (not (opposite-color? piece prev-square-piece))))))))]
+    (concat
+     ;; moves upward
+     (take-while
+      (partial non-blocked-square? [-1 0])
+      (map #(map + square-coords %) (for [dy (range -1 -8 -1)] [dy 0])))
+     ;; moves downward
+     (take-while
+      (partial non-blocked-square? [+1 0])
+      (map #(map + square-coords %) (for [dy (range +1 +8 +1)] [dy 0])))
+     ;; moves left
+     (take-while
+      (partial non-blocked-square? [0 -1])
+      (map #(map + square-coords %) (for [dx (range -1 -8 -1)] [0 dx])))
+     ;; moves right
+     (take-while
+      (partial non-blocked-square? [0 +1])
+      (map #(map + square-coords %) (for [dx (range +1 +8 +1)] [0 dx]))))))
 
 (defmethod legal-destination-indexes :default [_ _ _ _]
   [])

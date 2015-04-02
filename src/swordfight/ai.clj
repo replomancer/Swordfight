@@ -4,28 +4,29 @@
 
 (defn mexican-defense [game-state game-settings _]
   (let [board (:board game-state)]
-    (if (black? ((board 0) 1)) ;; b8
+    (if (= ((board 0) 1) "BN") ;; b8
       [(assoc game-state :board (move board "b8" "c6"))
        game-settings
        "move b8c6"]
-      (if (black? ((board 0) 6)) ;; g8
+      (if (= ((board 0) 6) "BN") ;; g8
         [(assoc game-state :board (move board "g8" "f6"))
          game-settings
          "move g8f6"]
         (let [some-moves
-                (map (fn [coords] [coords (legal-destination-indexes board coords "BN" nil)])
-                     (remove nil?
-                             (for [y (range 8)
-                                   x (range 8)]
-                               (when (= ((board y) x) "BN")
-                                 [y x]))))]
-            (if (seq some-moves)
-              (let [piece-moves (rand-nth some-moves)
-                    square-from (board-coords (first piece-moves))
-                    square-to (board-coords (rand-nth (second piece-moves)))]
-                [(assoc game-state :board (move board square-from square-to))
-                 game-settings
-                 (str "move " square-from square-to)])
-              [game-state
+              (map (fn [[coords piece]] [coords (legal-destination-indexes board coords piece nil)])
+                   (remove nil?
+                           (for [y (range 8)
+                                 x (range 8)]
+                             (let [piece ((board y) x)]
+                               (when (some #{piece} ["BN" "BR"])
+                                 [[y x] piece])))))]
+          (if (seq some-moves)
+            (let [piece-moves (rand-nth some-moves)
+                  square-from (board-coords (first piece-moves))
+                  square-to (board-coords (rand-nth (second piece-moves)))]
+              [(assoc game-state :board (move board square-from square-to))
                game-settings
-               "tellopponent Good Game! I give up.\nresign"]))))))
+               (str "move " square-from square-to)])
+            [game-state
+             game-settings
+             "tellopponent Good Game! I give up.\nresign"]))))))
