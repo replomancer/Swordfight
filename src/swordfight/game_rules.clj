@@ -143,3 +143,9 @@
 (defn move [board from-pos to-pos]
   (let [[board' piece] (remove-piece board from-pos)]
     (put-piece board' to-pos piece)))
+
+(defn promote [board position new-piece-type]
+  (let [new-piece-type (.toUpperCase new-piece-type)
+        [y x] (board-coords position)
+        piece-color (color ((board y) x))]
+    (put-piece board position (str piece-color new-piece-type))))

@@ -1,6 +1,6 @@
 (ns swordfight.cecp
-  (:use [swordfight.game-rules :only [black? empty-board initial-game-state move put-piece
-                                      legal-destination-indexes]]
+  (:use [swordfight.game-rules :only [black? empty-board initial-game-state move promote
+                                      put-piece legal-destination-indexes]]
         [swordfight.ai :only [mexican-defense]]))
 
 (defn xboard [game-state game-settings _]
@@ -16,8 +16,12 @@
 (defn MOVE [game-state game-settings cmd-vector]
   (let [algebraic-notation (first cmd-vector)
         pos1 (subs algebraic-notation 0 2) ;; FIXME: notation parsing
-        pos2 (subs algebraic-notation 2 4)]
-    [(update-in game-state [:board] move pos1 pos2)
+        pos2 (subs algebraic-notation 2 4)
+        promoted-to (when (> (.length algebraic-notation) 4) (subs algebraic-notation 4 5))]
+    [(let [shifted-piece-game-state (update-in game-state [:board] move pos1 pos2)]
+       (if-not promoted-to
+         shifted-piece-game-state
+         (update-in shifted-piece-game-state [:board] promote pos2 promoted-to)))
      game-settings
      ""]))
 
@@ -63,7 +67,7 @@
                            "xboard" xboard
                            "edit" edit
                            "new" new}
-          cmd-fun (if (and (= (count cmd) 4) ;; FIXME: notation parsing
+          cmd-fun (if (and (>= (.length cmd) 4) ;; FIXME: notation parsing
                            (Character/isDigit (.charAt cmd 1)))
                     (comp #(apply mexican-defense %) MOVE)
                     (get cmd-fun-mapping cmd ignore))]
