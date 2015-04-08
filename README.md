@@ -17,22 +17,22 @@ It's for fun. I know Clojure is not a good choice for a chess engine.
 4. Run `xboard` and choose `Engine -> Load New 1st Engine`.
    To add Swordfight as a new engine you need to point to the repo directory
    and set `lein run` as command. This will make Swordfight play as black.
-5. Play your first move.
-6. Swordfight plays a Mexican Defense (a.k.a. Kevitz–Trajkovic Defense a.k.a. Black Knights' Tango)
-   and after your third move it starts moving knights and rooks randomly. When checked it still
-   tries a random move with the knights or rooks which in general case is illegal (XBoard displays
-   useful messages). The engine resigns from further game after losing the knights and rooks.
-   If you run `xboard -debug` there will be some debugging info in the `xboard.debug` file.
+5. Play.
+
+Swordfight plays a Mexican Defense (a.k.a. Kevitz–Trajkovic Defense a.k.a. Black Knights' Tango)
+and after your third move it starts using minimax algorithm with a very simple evaluation function.
+If you run `xboard -debug` there will be some debugging info in the `xboard.debug` file.
 
 ![XBoard window](https://raw.githubusercontent.com/evalapply/Swordfight/master/doc/mexican_defense.png)
 
 
 You can also play without a GUI by running `lein run` and using a command line interface
-like in the session below (user input is after the `>` prompt):
+like in the session below (user input is after the `>` prompt). A monospaced font in your
+terminal is highly recommended for the debug output (chess board):
 
 ```
-# {:edition-current-color W, :debug-mode true, :xboard-mode false}
-# {:turn white}
+# {:xboard-mode false, :debug-mode true, :edition-current-color W}
+# {:turn white, :last-move nil}
 #
 # 8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
 # 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
@@ -45,59 +45,57 @@ like in the session below (user input is after the `>` prompt):
 #
 #    a b c d e f g h
 #
-> d2d4
+> e2e4
 move b8c6
-# {:edition-current-color W, :debug-mode true, :xboard-mode false}
-# {:turn white}
+# {:xboard-mode false, :debug-mode true, :edition-current-color W}
+# {:turn white, :last-move nil}
 #
 # 8  ♜   ♝ ♛ ♚ ♝ ♞ ♜
 # 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
 # 6      ♞          
 # 5                 
-# 4        ♙        
+# 4          ♙      
 # 3                 
-# 2  ♙ ♙ ♙   ♙ ♙ ♙ ♙
+# 2  ♙ ♙ ♙ ♙   ♙ ♙ ♙
 # 1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
 #
 #    a b c d e f g h
 #
-> e2e3
+> d2d4
 move g8f6
-# {:edition-current-color W, :debug-mode true, :xboard-mode false}
-# {:turn white}
+# {:xboard-mode false, :debug-mode true, :edition-current-color W}
+# {:turn white, :last-move nil}
 #
 # 8  ♜   ♝ ♛ ♚ ♝   ♜
 # 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
 # 6      ♞     ♞    
 # 5                 
-# 4        ♙        
-# 3          ♙      
+# 4        ♙ ♙      
+# 3                 
 # 2  ♙ ♙ ♙     ♙ ♙ ♙
 # 1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
 #
 #    a b c d e f g h
 #
-> b1c3
-tellopponent Good Game! I give up.
-resign
-# {:edition-current-color W, :debug-mode true, :xboard-mode false}
-# {:turn white}
+> f1b5
+move f6e4
+# {:xboard-mode false, :debug-mode true, :edition-current-color W}
+# {:turn white, :last-move nil}
 #
 # 8  ♜   ♝ ♛ ♚ ♝   ♜
 # 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
-# 6      ♞     ♞    
-# 5                 
-# 4        ♙        
-# 3      ♘   ♙      
+# 6      ♞          
+# 5    ♗            
+# 4        ♙ ♞      
+# 3                 
 # 2  ♙ ♙ ♙     ♙ ♙ ♙
-# 1  ♖   ♗ ♕ ♔ ♗ ♘ ♖
+# 1  ♖ ♘ ♗ ♕ ♔   ♘ ♖
 #
 #    a b c d e f g h
 #
->
+> 
 ```
 
-A monospaced font in your terminal is highly recommended for the debug output (chess board).
 The engine currently doesn't check if moves are legal, so you can move any piece or even
 empty square anywhere.
 

@@ -1,5 +1,5 @@
-(defproject swordfight "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
+(defproject swordfight "0.2.0-SNAPSHOT"
+  :description "Chess engine"
   :url "http://example.com/FIXME"
   :main swordfight.core
   :license {:name "2-clause BSD"

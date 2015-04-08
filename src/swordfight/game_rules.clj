@@ -53,6 +53,9 @@
     (or (= colors [\B \W])
         (= colors [\W \B]))))
 
+(def flip-color {\B \W
+                 \W \B})
+
 (defn on-board? [[y x]]
   (when (and (<= 0 y 7) (<= 0 x 7))
     [y x]))
@@ -169,8 +172,94 @@
                [forward-y attack-right-x])])))
 
 
+(defmethod legal-destination-indexes \Q [board square-coords piece _]
+  (let [non-blocked-square?
+        (fn [[dy dx] [y x]]
+          (and (on-board? [y x])
+               (let [square-piece ((board y) x)]
+                 (and (not (same-color? piece square-piece))
+                      (let [[prev-square-y prev-square-x] (map - [y x] [dy dx])
+                            prev-square-piece ((board prev-square-y) prev-square-x)]
+                        (or (empty-square? prev-square-piece)
+                            (not (opposite-color? piece prev-square-piece))))))))]
+    (concat
+     ;; moves upward
+     (take-while
+      (partial non-blocked-square? [-1 0])
+      (map #(map + square-coords %) (for [dy (range -1 -8 -1)] [dy 0])))
+     ;; moves downward
+     (take-while
+      (partial non-blocked-square? [+1 0])
+      (map #(map + square-coords %) (for [dy (range +1 +8 +1)] [dy 0])))
+     ;; moves left
+     (take-while
+      (partial non-blocked-square? [0 -1])
+      (map #(map + square-coords %) (for [dx (range -1 -8 -1)] [0 dx])))
+     ;; moves right
+     (take-while
+      (partial non-blocked-square? [0 +1])
+      (map #(map + square-coords %) (for [dx (range +1 +8 +1)] [0 dx])))
+     ;; moves up-left
+     (take-while
+      (partial non-blocked-square? [-1 -1])
+      (map #(map + square-coords %) (for [d (range -1 -8 -1)] [d d])))
+     ;; moves up-right
+     (take-while
+      (partial non-blocked-square? [-1 +1])
+      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [(- d) d])))
+     ;; moves down-left
+     (take-while
+      (partial non-blocked-square? [+1 -1])
+      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [d (- d)])))
+     ;; moves down-left
+     (take-while
+      (partial non-blocked-square? [+1 +1])
+      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [d d]))))))
+
+
+(defmethod legal-destination-indexes \B [board square-coords piece _]
+  (let [non-blocked-square?
+        (fn [[dy dx] [y x]]
+          (and (on-board? [y x])
+               (let [square-piece ((board y) x)]
+                 (and (not (same-color? piece square-piece))
+                      (let [[prev-square-y prev-square-x] (map - [y x] [dy dx])
+                            prev-square-piece ((board prev-square-y) prev-square-x)]
+                        (or (empty-square? prev-square-piece)
+                            (not (opposite-color? piece prev-square-piece))))))))]
+    (concat
+     ;; moves up-left
+     (take-while
+      (partial non-blocked-square? [-1 -1])
+      (map #(map + square-coords %) (for [d (range -1 -8 -1)] [d d])))
+     ;; moves up-right
+     (take-while
+      (partial non-blocked-square? [-1 +1])
+      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [(- d) d])))
+     ;; moves down-left
+     (take-while
+      (partial non-blocked-square? [+1 -1])
+      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [d (- d)])))
+     ;; moves down-left
+     (take-while
+      (partial non-blocked-square? [+1 +1])
+      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [d d]))))))
+
+
+(defmethod legal-destination-indexes \K [board square-coords piece _]
+  (filter (fn [[y x]]
+            (and (on-board? [y x])
+                 (let [square-piece ((board y) x)]
+                   (or (empty-square? square-piece)
+                       (opposite-color? piece square-piece)))))
+          (map #(map + square-coords %) [[-1  0] [-1 -1] [-1 +1]
+                                         [ 0 -1]         [ 0 +1]
+                                         [+1 -1] [+1  0] [+1 +1]])))
+
+
 (defmethod legal-destination-indexes :default [_ _ _ _]
   [])
+
 
 (defn possible-moves [board from-square player-color last-move]
   (let [square-idx (board-coords from-square)
