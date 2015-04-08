@@ -13,17 +13,19 @@
          game-settings
          "move g8f6"]
         (let [some-moves
-              (map (fn [[coords piece]] [coords (legal-destination-indexes board coords piece nil)])
-                   (remove nil?
-                           (for [y (range 8)
-                                 x (range 8)]
-                             (let [piece ((board y) x)]
-                               (when (some #{piece} ["BN" "BR"])
-                                 [[y x] piece])))))]
+              (remove #(empty? (second %))
+                      (map (fn [[coords piece]] [coords (legal-destination-indexes board coords piece nil)])
+                           (remove nil?
+                                   (for [y (range 8)
+                                         x (range 8)]
+                                     (let [piece ((board y) x)]
+                                       (when (some #{piece} ["BN" "BR" "BP"])
+                                         [[y x] piece]))))))]
           (if (seq some-moves)
             (let [piece-moves (rand-nth some-moves)
                   square-from (board-coords (first piece-moves))
                   square-to (board-coords (rand-nth (second piece-moves)))]
+              (println "# some-moves:" some-moves)
               [(assoc game-state :board (move board square-from square-to))
                game-settings
                (str "move " square-from square-to)])

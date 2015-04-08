@@ -3,12 +3,12 @@
 
 (def initial-board
   [[ "BR"  "BN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-   [ "B "  "B "  "B "  "B "  "B "  "B "  "B "  "B " ]
+   [ "BP"  "BP"  "BP"  "BP"  "BP"  "BP"  "BP"  "BP" ]
    [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
    [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
    [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
    [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-   [ "W "  "W "  "W "  "W "  "W "  "W "  "W "  "W " ]
+   [ "WP"  "WP"  "WP"  "WP"  "WP"  "WP"  "WP"  "WP" ]
    [ "WR"  "WN"  "WB"  "WQ"  "WK"  "WB"  "WN"  "WR" ]])
 
 (def empty-square "  ")
@@ -37,6 +37,8 @@
     (merge one-way (map-invert one-way)))) ;; it makes it bi-directional
 
 (def color first)
+
+(def piece-type second)
 
 (defn white? [piece] (= (color piece) \W))
 
@@ -120,6 +122,53 @@
       (partial non-blocked-square? [0 +1])
       (map #(map + square-coords %) (for [dx (range +1 +8 +1)] [0 dx]))))))
 
+
+(defmethod legal-destination-indexes \P [board [square-y square-x] piece last-move]
+  (let [[forward-direction starting-row en-passant-row promotion-row]
+        (if (black? ((board square-y) square-x))
+          [+1 1 4 7]
+          [-1 6 3 0])
+        forward-y (+ square-y forward-direction)
+        attack-left-x (dec square-x)
+        attack-right-x (inc square-x)
+        jump-forward-y (+ square-y (* 2 forward-direction))
+        forward-square (when (on-board? [forward-y square-x])
+                         ((board forward-y) square-x))
+        attack-left (when (on-board? [forward-y attack-left-x])
+                      ((board forward-y) attack-left-x))
+        attack-right (when (on-board? [forward-y attack-right-x])
+                       ((board forward-y) attack-right-x))
+        jump-forward-square (when (on-board? [jump-forward-y square-x])
+                              ((board jump-forward-y) square-x))]
+    (remove nil?
+            [(when (and forward-square (empty-square? forward-square))
+               [forward-y square-x])
+             (when (and (= square-y starting-row)
+                        (empty-square? forward-square)
+                        (empty-square? jump-forward-square))
+               [jump-forward-y square-x])
+             (when (and attack-left (opposite-color? piece attack-left))
+               [forward-y attack-left-x])
+             (when (and attack-right (opposite-color? piece attack-right))
+               [forward-y attack-right-x])
+             (when (and
+                    attack-left
+                    (= square-y en-passant-row)
+                    (= (piece-type (first last-move)) \P)
+                    (= (second last-move) [[(- square-y (* 2 (- forward-direction)))
+                                            (dec square-x)]
+                                           [square-y (dec square-x)]]))
+               [forward-y attack-left-x])
+             (when (and
+                    attack-right
+                    (= square-y en-passant-row)
+                    (= (piece-type (first last-move)) \P)
+                    (= (second last-move) [[(- square-y (* 2 (- forward-direction)))
+                                            (inc square-x)]
+                                           [square-y (inc square-x)]]))
+               [forward-y attack-right-x])])))
+
+
 (defmethod legal-destination-indexes :default [_ _ _ _]
   [])
 
@@ -134,11 +183,11 @@
 (defn remove-piece [board position]
   (let [[y x] (board-coords position)
         piece ((board y) x)]
-    [(update-in board [y x] (fn [_] empty-square)) piece]))
+    [(assoc-in board [y x] empty-square) piece]))
 
 (defn put-piece [board position piece]
   (let [[y x] (board-coords position)]
-    (update-in board [y x] (fn [_] piece))))
+    (assoc-in board [y x] piece)))
 
 (defn move [board from-pos to-pos]
   (let [[board' piece] (remove-piece board from-pos)]
