@@ -90,7 +90,7 @@
 
 (defmethod legal-destination-indexes \N [board square-coords piece _]
   (filter (fn [[y x]] (and (on-board? [y x])
-                           (not (black? ((board y) x)))))
+                           (not= (color ((board y) x)) (color piece))))
           (map #(map + square-coords %)
                [[-2 -1] [-1 -2] [+1 -2] [+2 -1]
                 [-2 +1] [-1 +2] [+1 +2] [+2 +1]])))
