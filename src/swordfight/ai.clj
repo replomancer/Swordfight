@@ -63,18 +63,17 @@
 
 
 (defn mexican-defense [game-state game-settings _]
-  (let [board (:board game-state)]
-    (if (= ((board 0) 1) "BN") ;; b8
-      [(assoc game-state :board (move board "b8" "c6"))
+  (let [first-moves [["b8" "c6"] ["g8" "f6"]]
+        moves-cnt (:moves-cnt game-state)
+        [square-from square-to] (if (< moves-cnt (count first-moves))
+                                  (first-moves moves-cnt)
+                                  (choose-best-move
+                                   \B
+                                   (:board game-state)
+                                   (:last-move game-state)))]
+      [(update-in
+        (update-in game-state [:board]
+                   move square-from square-to)
+        [:moves-cnt] inc)
        game-settings
-       "move b8c6"]
-      (if (= ((board 0) 6) "BN") ;; g8
-        [(assoc game-state :board (move board "g8" "f6"))
-         game-settings
-         "move g8f6"]
-        (let [[square-from square-to] (choose-best-move \B
-                                                        (:board game-state)
-                                                        (:last-move game-state))]
-          [(assoc game-state :board (move board square-from square-to))
-           game-settings
-           (str "move " square-from square-to)])))))
+       (str "move " square-from square-to)]))

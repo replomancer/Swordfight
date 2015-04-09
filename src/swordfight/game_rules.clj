@@ -22,6 +22,7 @@
 
 (def initial-game-state {:board initial-board
                          :turn "white"
+                         :moves-cnt 0
                          :last-move nil})
 
 (def board-coords
