@@ -280,7 +280,13 @@
 
 (defn move [board from-pos to-pos]
   (let [[board' piece] (remove-piece board from-pos)]
-    (put-piece board' to-pos piece)))
+    (cond (and (= (piece-type piece) \K) ;; castling queenside - assume it's legal
+               (= [from-pos to-pos] ["e1" "c1"])) (let [board'' (move board' "a1" "d1")]
+                                                    (put-piece board'' to-pos piece))
+          (and (= (piece-type piece) \K) ;; castling kingside
+               (= [from-pos to-pos] ["e1" "g1"])) (let [board'' (move board' "h1" "f1")]
+                                                    (put-piece board'' to-pos piece))
+          :else (put-piece board' to-pos piece))))
 
 (defn promote [board position new-piece-type]
   (let [new-piece-type (.toUpperCase new-piece-type)
