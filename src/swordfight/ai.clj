@@ -71,9 +71,7 @@
                                    \B
                                    (:board game-state)
                                    (:last-move game-state)))]
-      [(update-in
-        (update-in game-state [:board]
-                   move square-from square-to)
-        [:moves-cnt] inc)
-       game-settings
-       (str "move " square-from square-to)]))
+    [(update (update game-state :board move square-from square-to)
+             :moves-cnt inc)
+     game-settings
+     (str "move " square-from square-to)]))
