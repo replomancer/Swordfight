@@ -61,37 +61,14 @@
   (when (and (<= 0 y 7) (<= 0 x 7))
     [y x]))
 
-(defn square-left [[square-y square-x]]
-  (on-board? [square-y (dec square-x)]))
 
-(defn square-right [[square-y square-x]]
-  (on-board? [square-y (inc square-x)]))
-
-(defn square-up [[square-y square-x]]
-  (on-board? [(dec square-y) square-x]))
-
-(defn square-down [[square-y square-x]]
-  (on-board? [(inc square-y) square-x]))
-
-(defn square-up-left [[square-y square-x]]
-  (on-board? [(dec square-y) (dec square-x)]))
-
-(defn square-up-right [[square-y square-x]]
-  (on-board? [(dec square-y) (inc square-x)]))
-
-(defn square-down-left [[square-y square-x]]
-  (on-board? [(inc square-y) (dec square-x)]))
-
-(defn square-down-right [[square-y square-x]]
-  (on-board? [(inc square-y) (inc square-x)]))
-
-;; This is an experiment: dispatching on piece type.
 (defmulti legal-destination-indexes (fn [board square-coords piece last-move]
-                                      (second piece)))
+                                      (piece-type piece)))
+
 
 (defmethod legal-destination-indexes \N [board square-coords piece _]
   (filter (fn [[y x]] (and (on-board? [y x])
-                           (not= (color ((board y) x)) (color piece))))
+                           (not= (color (get-in board [y x])) (color piece))))
           (map #(map + square-coords %)
                [[-2 -1] [-1 -2] [+1 -2] [+2 -1]
                 [-2 +1] [-1 +2] [+1 +2] [+2 +1]])))
@@ -102,10 +79,10 @@
   (let [non-blocked-square?
         (fn [[dy dx] [y x]]
           (and (on-board? [y x])
-               (let [square-piece ((board y) x)]
+               (let [square-piece (get-in board [y x])]
                  (and (not (same-color? piece square-piece))
                       (let [[prev-square-y prev-square-x] (map - [y x] [dy dx])
-                            prev-square-piece ((board prev-square-y) prev-square-x)]
+                            prev-square-piece (get-in board [prev-square-y prev-square-x])]
                         (or (empty-square? prev-square-piece)
                             (not (opposite-color? piece prev-square-piece))))))))]
     (concat
@@ -129,7 +106,7 @@
 
 (defmethod legal-destination-indexes \P [board [square-y square-x] piece last-move]
   (let [[forward-direction starting-row en-passant-row promotion-row]
-        (if (black? ((board square-y) square-x))
+        (if (black? (get-in board [square-y square-x]))
           [+1 1 4 7]
           [-1 6 3 0])
         forward-y (+ square-y forward-direction)
@@ -137,13 +114,13 @@
         attack-right-x (inc square-x)
         jump-forward-y (+ square-y (* 2 forward-direction))
         forward-square (when (on-board? [forward-y square-x])
-                         ((board forward-y) square-x))
+                         (get-in board [forward-y square-x]))
         attack-left (when (on-board? [forward-y attack-left-x])
-                      ((board forward-y) attack-left-x))
+                      (get-in board [forward-y attack-left-x]))
         attack-right (when (on-board? [forward-y attack-right-x])
-                       ((board forward-y) attack-right-x))
+                       (get-in board [forward-y attack-right-x]))
         jump-forward-square (when (on-board? [jump-forward-y square-x])
-                              ((board jump-forward-y) square-x))]
+                              (get-in board [jump-forward-y square-x]))]
     (remove nil?
             [(when (and forward-square (empty-square? forward-square))
                [forward-y square-x])
@@ -177,10 +154,10 @@
   (let [non-blocked-square?
         (fn [[dy dx] [y x]]
           (and (on-board? [y x])
-               (let [square-piece ((board y) x)]
+               (let [square-piece (get-in board [y x])]
                  (and (not (same-color? piece square-piece))
                       (let [[prev-square-y prev-square-x] (map - [y x] [dy dx])
-                            prev-square-piece ((board prev-square-y) prev-square-x)]
+                            prev-square-piece (get-in board [prev-square-y prev-square-x])]
                         (or (empty-square? prev-square-piece)
                             (not (opposite-color? piece prev-square-piece))))))))]
     (concat
@@ -222,10 +199,10 @@
   (let [non-blocked-square?
         (fn [[dy dx] [y x]]
           (and (on-board? [y x])
-               (let [square-piece ((board y) x)]
+               (let [square-piece (get-in board [y x])]
                  (and (not (same-color? piece square-piece))
                       (let [[prev-square-y prev-square-x] (map - [y x] [dy dx])
-                            prev-square-piece ((board prev-square-y) prev-square-x)]
+                            prev-square-piece (get-in board [prev-square-y prev-square-x])]
                         (or (empty-square? prev-square-piece)
                             (not (opposite-color? piece prev-square-piece))))))))]
     (concat
@@ -250,7 +227,7 @@
 (defmethod legal-destination-indexes \K [board square-coords piece _]
   (filter (fn [[y x]]
             (and (on-board? [y x])
-                 (let [square-piece ((board y) x)]
+                 (let [square-piece (get-in board [y x])]
                    (or (empty-square? square-piece)
                        (opposite-color? piece square-piece)))))
           (map #(map + square-coords %) [[-1  0] [-1 -1] [-1 +1]
@@ -263,16 +240,15 @@
 
 
 (defn possible-moves [board from-square player-color last-move]
-  (let [square-idx (board-coords from-square)
-        piece (board square-idx)
+  (let [piece (get-in board from-square)
         [piece-color piece-type] piece]
     (if (not= piece-color player-color) ;; this case also covers empty squares
       []
-      (legal-destination-indexes board square-idx piece last-move))))
+      (legal-destination-indexes board from-square piece last-move))))
 
 (defn remove-piece [board position]
   (let [[y x] (board-coords position)
-        piece ((board y) x)]
+        piece (get-in board [y x])]
     [(assoc-in board [y x] empty-square) piece]))
 
 (defn put-piece [board position piece]
@@ -292,5 +268,5 @@
 (defn promote [board position new-piece-type]
   (let [new-piece-type (.toUpperCase new-piece-type)
         [y x] (board-coords position)
-        piece-color (color ((board y) x))]
+        piece-color (color (get-in board [y x]))]
     (put-piece board position (str piece-color new-piece-type))))

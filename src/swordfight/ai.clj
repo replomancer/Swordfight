@@ -1,5 +1,5 @@
 (ns swordfight.ai
-  (:use [swordfight.game-rules :only [black? color flip-color piece-type board-coords move legal-destination-indexes]]))
+  (:use [swordfight.game-rules :only [black? color flip-color piece-type board-coords move possible-moves]]))
 
 
 (defn eval-board [board]
@@ -22,7 +22,7 @@
                   "  " 0}
                  (for [y (range 8)
                        x (range 8)]
-                   ((board y) x)))))
+                   (get-in board [y x])))))
 
 
 (def minimax-depth 2)
@@ -35,13 +35,11 @@
   ([side board last-move depth]
      (let [available-moves
               (remove #(empty? (second %))
-                      (map (fn [[coords piece]] [coords (legal-destination-indexes board coords piece nil)])
-                           (remove nil?
-                                   (for [y (range 8)
-                                         x (range 8)]
-                                     (let [piece ((board y) x)]
-                                       (when (= (color piece) side)
-                                         [[y x] piece]))))))]
+                      (map (fn [[coords]]
+                             [coords (possible-moves board coords side nil)])
+                           (for [y (range 8)
+                                 x (range 8)]
+                             [[y x]])))]
        (apply (if (= side \B) max-key
                               min-key)
               second ;; board evaluation is second in the pair
