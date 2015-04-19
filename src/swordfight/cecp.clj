@@ -27,7 +27,7 @@
 
 
 (defn edit [game-state game-settings cmd-vector]
-  [(assoc game-state :edit-mode true) game-settings ""])
+  [(assoc game-state :edit-mode true :edited true) game-settings ""])
 
 
 (defn eval-edit-command [game-state game-settings cmd-vector]
@@ -59,15 +59,15 @@
 
 
 (defn eval-command [game-state game-settings cmd-vector]
-  (if (:edit-mode game-state)
-    (eval-edit-command game-state game-settings cmd-vector)
-    (let [cmd (get cmd-vector 0)
-          cmd-fun-mapping {"quit" quit
-                           "xboard" xboard
-                           "edit" edit
-                           "new" new}
-          cmd-fun (if (and (>= (.length cmd) 4) ;; FIXME: notation parsing
-                           (Character/isDigit (.charAt cmd 1)))
-                    (comp #(apply mexican-defense %) MOVE)
-                    (get cmd-fun-mapping cmd ignore))]
-      (cmd-fun game-state game-settings cmd-vector))))
+  (let [cmd (get cmd-vector 0)
+        cmd-fun-mapping {"quit" quit
+                         "xboard" xboard
+                         "edit" edit
+                         "new" new}
+        cmd-fun (cond (:edit-mode game-state) eval-edit-command
+                      (and (>= (.length cmd) 4)
+                           (Character/isDigit (.charAt cmd 1))) (comp
+                                                                 #(apply mexican-defense %)
+                                                                 MOVE)
+                      :else (get cmd-fun-mapping cmd ignore))]
+    (cmd-fun game-state game-settings cmd-vector)))

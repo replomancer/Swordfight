@@ -16,13 +16,12 @@
 (defn empty-square? [square] (= square empty-square))
 
 (def empty-board
-  (for [_ (range 8)]
-      (for [_ (range 8)]
-        empty-square)))
+  (vec (repeat 8 (vec (repeat 8 empty-square)))))
 
 (def initial-game-state {:board initial-board
                          :turn "white"
                          :moves-cnt 0
+                         :edited false
                          :last-move nil})
 
 (def board-coords
