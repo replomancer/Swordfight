@@ -1,7 +1,8 @@
 (ns swordfight.cecp
   (:use [swordfight.game-rules :only [black? empty-board initial-game-state move promote
                                       put-piece legal-destination-indexes]]
-        [swordfight.ai :only [mexican-defense]]))
+        [swordfight.ai :only [mexican-defense]]
+        [swordfight.debug :only [show-game-state]]))
 
 (defn xboard [game-state game-settings _]
   [game-state
@@ -17,13 +18,14 @@
   (let [algebraic-notation (first cmd-vector)
         pos1 (subs algebraic-notation 0 2) ;; FIXME: notation parsing
         pos2 (subs algebraic-notation 2 4)
-        promoted-to (when (> (.length algebraic-notation) 4) (subs algebraic-notation 4 5))]
-    [(let [shifted-piece-game-state (update game-state :board move pos1 pos2)]
-       (if-not promoted-to
-         shifted-piece-game-state
-         (update shifted-piece-game-state :board promote pos2 promoted-to)))
-     game-settings
-     ""]))
+        promoted-to (when (> (.length algebraic-notation) 4)
+                      (subs algebraic-notation 4 5))
+        game-state' (-> (update game-state :board move pos1 pos2)
+                        (assoc :last-move [pos1 pos2])
+                        (update :board promote pos2 promoted-to))]
+        (when (:debug-mode game-settings)
+          (show-game-state game-state'))
+        [game-state' game-settings ""]))
 
 
 (defn edit [game-state game-settings cmd-vector]

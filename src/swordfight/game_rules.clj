@@ -265,7 +265,9 @@
           :else (put-piece board' to-pos piece))))
 
 (defn promote [board position new-piece-type]
-  (let [new-piece-type (.toUpperCase new-piece-type)
-        [y x] (board-coords position)
-        piece-color (color (get-in board [y x]))]
-    (put-piece board position (str piece-color new-piece-type))))
+  (if-not new-piece-type
+          board
+          (let [new-piece-type (.toUpperCase new-piece-type)
+                [y x] (board-coords position)
+                piece-color (color (get-in board [y x]))]
+            (put-piece board position (str piece-color new-piece-type)))))
