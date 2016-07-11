@@ -1,5 +1,5 @@
 (ns swordfight.ai
-  (:use [swordfight.game-rules :only [black? color flip-color piece-type board-coords move possible-moves]]))
+  (:use [swordfight.game-rules :only [black? color change-side piece-type board-coords board-notation move possible-moves]]))
 
 
 (defn eval-board [board]
@@ -28,36 +28,32 @@
 (def minimax-depth 2)
 
 
+(defn find-available-moves [side board last-move]
+  (mapcat (fn [[coords]]
+            (for [possible-move (possible-moves board coords side last-move)]
+              [coords possible-move]))
+          (for [y (range 8) x (range 8)] [[y x]])))
+
+
 (defn choose-best-move
   ([side board last-move]
-     (first
-      (choose-best-move side board last-move minimax-depth)))
+   (first (choose-best-move side board last-move minimax-depth)))
   ([side board last-move depth]
-     (let [available-moves
-              (remove #(empty? (second %))
-                      (map (fn [[coords]]
-                             [coords (possible-moves board coords side nil)])
-                           (for [y (range 8)
-                                 x (range 8)]
-                             [[y x]])))]
-       (apply (if (= side \B) max-key
-                              min-key)
-              second ;; board evaluation is second in the pair
-              (apply concat
-                     (for [piece-moves available-moves]
-                       (let [square-from (board-coords (first piece-moves))]
-                         (for [square-to-notation (second piece-moves)]
-                           (let [square-to (board-coords square-to-notation)
-                                 board-after-move (move board square-from square-to)]
-                             (let [board-value (if-not (pos? depth)
-                                                 (eval-board board-after-move)
-                                                 (second (choose-best-move
-                                                          (flip-color side)
-                                                          board-after-move
-                                                          ;;FIXME: last-move
-                                                          [[nil nil] [square-from square-to]]
-                                                          (dec depth))))]
-                               [[square-from square-to] board-value]))))))))))
+   (let [available-moves (find-available-moves side board last-move)]
+     (apply (if (= side \B) max-key min-key)
+            second ;; board evaluation is second in the pair
+            (for [piece-move available-moves]
+              (let [square-from (board-coords (first piece-move))
+                    square-to (board-coords (second piece-move))
+                    board-after-move (move board square-from square-to)
+                    board-value (if-not (pos? depth)
+                                  (eval-board board-after-move)
+                                  (second (choose-best-move
+                                           (change-side side)
+                                           board-after-move
+                                           (map board-notation piece-move)
+                                           (dec depth))))]
+                [[square-from square-to] board-value]))))))
 
 
 (defn mexican-defense [game-state game-settings _]

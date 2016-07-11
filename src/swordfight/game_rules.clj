@@ -22,7 +22,7 @@
                          :turn "white"
                          :moves-cnt 0
                          :edited false
-                         :last-move nil})
+                         :last-move [nil nil]})
 
 (def board-coords
   (let [one-way
@@ -35,6 +35,8 @@
          "a2" [6 0] "b2" [6 1] "c2" [6 2] "d2" [6 3] "e2" [6 4] "f2" [6 5] "g2" [6 6] "h2" [6 7]
          "a1" [7 0] "b1" [7 1] "c1" [7 2] "d1" [7 3] "e1" [7 4] "f1" [7 5] "g1" [7 6] "h1" [7 7]}]
     (merge one-way (map-invert one-way)))) ;; it makes it bi-directional
+
+(def board-notation board-coords) ;; FIXME
 
 (def color first)
 
@@ -53,8 +55,8 @@
     (or (= colors [\B \W])
         (= colors [\W \B]))))
 
-(def flip-color {\B \W
-                 \W \B})
+(def change-side {\B \W
+                  \W \B})
 
 (defn on-board? [[y x]]
   (when (and (<= 0 y 7) (<= 0 x 7))
@@ -109,15 +111,15 @@
           [+1 1 4 7]
           [-1 6 3 0])
         forward-y (+ square-y forward-direction)
-        attack-left-x (dec square-x)
-        attack-right-x (inc square-x)
+        left-x (dec square-x)
+        right-x (inc square-x)
         jump-forward-y (+ square-y (* 2 forward-direction))
         forward-square (when (on-board? [forward-y square-x])
                          (get-in board [forward-y square-x]))
-        attack-left (when (on-board? [forward-y attack-left-x])
-                      (get-in board [forward-y attack-left-x]))
-        attack-right (when (on-board? [forward-y attack-right-x])
-                       (get-in board [forward-y attack-right-x]))
+        attack-left (when (on-board? [forward-y left-x])
+                      (get-in board [forward-y left-x]))
+        attack-right (when (on-board? [forward-y right-x])
+                       (get-in board [forward-y right-x]))
         jump-forward-square (when (on-board? [jump-forward-y square-x])
                               (get-in board [jump-forward-y square-x]))]
     (remove nil?
@@ -128,25 +130,23 @@
                         (empty-square? jump-forward-square))
                [jump-forward-y square-x])
              (when (and attack-left (opposite-color? piece attack-left))
-               [forward-y attack-left-x])
+               [forward-y left-x])
              (when (and attack-right (opposite-color? piece attack-right))
-               [forward-y attack-right-x])
-             (when (and
-                    attack-left
-                    (= square-y en-passant-row)
-                    (= (piece-type (first last-move)) \P)
-                    (= (second last-move) [[(- square-y (* 2 (- forward-direction)))
-                                            (dec square-x)]
-                                           [square-y (dec square-x)]]))
-               [forward-y attack-left-x])
-             (when (and
-                    attack-right
-                    (= square-y en-passant-row)
-                    (= (piece-type (first last-move)) \P)
-                    (= (second last-move) [[(- square-y (* 2 (- forward-direction)))
-                                            (inc square-x)]
-                                           [square-y (inc square-x)]]))
-               [forward-y attack-right-x])])))
+               [forward-y right-x])
+
+             (when (= square-y en-passant-row)
+               (let [last-move-from (board-coords (first last-move))
+                     last-move-to (board-coords (second last-move))
+                     last-moved-piece (get-in board (board-coords (second last-move)))]
+                 (when (= (piece-type last-moved-piece) \P)
+                   (if (and attack-left
+                            (= last-move-from [jump-forward-y left-x])
+                            (= last-move-to [square-y left-x]))
+                     [forward-y left-x]
+                     (if (and attack-right
+                              (= last-move-from [jump-forward-y right-x])
+                              (= last-move-to [square-y right-x]))
+                       [forward-y right-x])))))])))
 
 
 (defmethod legal-destination-indexes \Q [board square-coords piece _]
@@ -241,28 +241,57 @@
 (defn possible-moves [board from-square player-color last-move]
   (let [piece (get-in board from-square)
         [piece-color piece-type] piece]
-    (if (not= piece-color player-color) ;; this case also covers empty squares
+    (if (not= piece-color player-color) ;; this check also covers empty squares
       []
       (legal-destination-indexes board from-square piece last-move))))
+
 
 (defn remove-piece [board position]
   (let [[y x] (board-coords position)
         piece (get-in board [y x])]
     [(assoc-in board [y x] empty-square) piece]))
 
+
 (defn put-piece [board position piece]
   (let [[y x] (board-coords position)]
     (assoc-in board [y x] piece)))
 
+
 (defn move [board from-pos to-pos]
-  (let [[board' piece] (remove-piece board from-pos)]
-    (cond (and (= (piece-type piece) \K) ;; castling queenside - assume it's legal
-               (= [from-pos to-pos] ["e1" "c1"])) (let [board'' (move board' "a1" "d1")]
-                                                    (put-piece board'' to-pos piece))
-          (and (= (piece-type piece) \K) ;; castling kingside
-               (= [from-pos to-pos] ["e1" "g1"])) (let [board'' (move board' "h1" "f1")]
-                                                    (put-piece board'' to-pos piece))
-          :else (put-piece board' to-pos piece))))
+  ;; This function always assumes the move is legal
+  (let [[board' piece] (remove-piece board from-pos)
+        board''
+        ;; special cases where extra pieces need to be moved or removed
+        (cond (= (piece-type piece) \K)
+              ;; extra tower moves when castling:
+              (cond (= [from-pos to-pos] ["e1" "c1"])  ;; white castling queenside
+                    (move board' "a1" "d1")
+
+                    (= [from-pos to-pos] ["e1" "g1"]) ;; white castling kingside
+                    (move board' "h1" "f1")
+
+                    (= [from-pos to-pos] ["e8" "c8"])  ;; black castling queenside
+                    (move board' "a8" "d8")
+
+                    (= [from-pos to-pos] ["e8" "g8"]) ;; black castling kingside
+                    (move board' "h8" "f8")
+
+                    :else board')
+
+              (= (piece-type piece) \P)
+              ;; en passant moves require removing pawns
+              ;; Condition: the pawn is changing column, but the target square is empty
+              (let [[from-y from-x] (board-coords from-pos)
+                    [to-y to-x] (board-coords to-pos)]
+                (if (and (not= from-x to-x)
+                         (empty-square? (get-in board [to-y to-x])))
+                  (first (remove-piece board' (board-notation [from-y to-x])))
+                  board'))
+
+              :else board')]
+
+    (put-piece board'' to-pos piece)))
+
 
 (defn promote [board position new-piece-type]
   (if-not new-piece-type
