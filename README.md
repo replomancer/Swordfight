@@ -1,5 +1,7 @@
 # Swordfight
 
+[![Build Status](https://travis-ci.org/evalapply/Swordfight.svg?branch=master)](https://travis-ci.org/evalapply/Swordfight)
+
 "*A game of chess is like a sword fight. You must think first before you move.*"
 ([Shaolin and Wu Tang](https://en.wikipedia.org/wiki/Shaolin_and_Wu_Tang))
 
