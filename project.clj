@@ -4,4 +4,4 @@
   :main swordfight.core
   :license {:name "2-clause BSD"
             :url ""}
-  :dependencies [[org.clojure/clojure "1.8.0-alpha2"]])
+  :dependencies [[org.clojure/clojure "1.9.0-alpha9"]])
