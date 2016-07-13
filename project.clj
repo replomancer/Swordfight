@@ -4,4 +4,6 @@
   :main swordfight.core
   :license {:name "2-clause BSD"
             :url ""}
-  :dependencies [[org.clojure/clojure "1.9.0-alpha10"]])
+  :dependencies [[org.clojure/clojure "1.9.0-alpha9"]]
+  :profiles {:dev {:dependencies [[midje "1.9.0-alpha3"]]
+                   :plugins [[lein-midje "3.2"]]}})
