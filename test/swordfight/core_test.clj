@@ -122,3 +122,47 @@
         (contains? found-moves ["b4" "a3"])) => false)
     (fact "Engine makes an obvious best move when en passant not possible"
       (choose-best-move \B board last-move) => ["b4" "b3"])))
+
+
+(facts "about castling"
+  (let [board
+        [[ "BR"  "  "  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
+         [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
+         [ "BN"  "BP"  "BP"  "  "  "BP"  "  "  "  "  "  " ]
+         [ "BP"  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "WP"  "WN"  "WP"  "WB"  "  "  "  "  "  " ]
+         [ "WP"  "  "  "WP"  "WQ"  "WP"  "WP"  "WP"  "WP" ]
+         [ "WR"  "  "  "  "  "  "  "WK"  "WB"  "WN"  "WR" ]]
+        board'
+        [[ "BR"  "  "  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
+         [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
+         [ "BN"  "BP"  "BP"  "  "  "BP"  "  "  "  "  "  " ]
+         [ "BP"  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "WP"  "WN"  "WP"  "WB"  "  "  "  "  "  " ]
+         [ "WP"  "  "  "WP"  "WQ"  "WP"  "WP"  "WP"  "WP" ]
+         [ "  "  "  "  "WK"  "WR"  "  "  "WB"  "WN"  "WR" ]]]
+    (fact "Engine understands the result of white castling queenside"
+      (move board "e1" "c1") => board'))
+
+    (let [board
+          [[ "BR"  "WN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
+           [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
+           [ "BP"  "  "  "BP"  "  "  "BP"  "  "  "  "  "  " ]
+           [ "  "  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
+           [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
+           [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "WN" ]
+           [ "WP"  "WP"  "WP"  "WP"  "WP"  "  "  "WB"  "WP" ]
+           [ "WR"  "WN"  "WB"  "WQ"  "WK"  "  "  "  "  "WR" ]]
+          board'
+          [[ "BR"  "WN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
+           [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
+           [ "BP"  "  "  "BP"  "  "  "BP"  "  "  "  "  "  " ]
+           [ "  "  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
+           [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
+           [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "WN" ]
+           [ "WP"  "WP"  "WP"  "WP"  "WP"  "  "  "WB"  "WP" ]
+           [ "WR"  "WN"  "WB"  "WQ"  "  "  "WR"  "WK"  "  " ]]]
+    (fact "Engine understands the result of white castling kingside"
+      (move board "e1" "g1") => board')))
