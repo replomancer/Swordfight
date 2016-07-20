@@ -1,5 +1,5 @@
 (ns swordfight.core-test
-  (:use [midje.sweet :only [facts fact]]
+  (:use [midje.sweet :only [facts fact contains]]
         [swordfight.core :only [initial-settings]]
         [swordfight.game-rules :only [initial-board change-side move
                                       board-coords board-notation empty-square?]]
@@ -20,6 +20,11 @@
                                              (board-coords square-from)
                                              (board-coords square-to))
                                        [square-from square-to]))))))
+
+
+(defn found-moves-notation [side board last-move]
+  (set (map (partial map board-notation)
+            (find-available-moves side board last-move))))
 
 
 (facts "about numbers of moves"
@@ -56,11 +61,9 @@
          [ "BP"  "  "  "  "  "WP"  "  "  "WN"  "  "  "  " ]
          [ "  "  "WP"  "WP"  "  "  "WP"  "WP"  "WP"  "WP" ]
          [ "WR"  "WN"  "WB"  "WQ"  "WK"  "WB"  "  "  "WR" ]]
-        last-move ["a2" "a4"]
-        found-moves (set (map (partial map board-notation)
-                              (find-available-moves \B board last-move)))]
+        last-move ["a2" "a4"]]
     (fact "Engine knows en passant moves to the left"
-      (contains? found-moves ["b4" "a3"]) => true)
+      (contains? (found-moves-notation \B board last-move) ["b4" "a3"]) => true)
     (fact "Engine understands results of en passant moves to the left"
       (move board "b4" "a3") => board'))
 
@@ -83,11 +86,9 @@
          [ "  "  "  "  "BP"  "WP"  "  "  "WN"  "  "  "  " ]
          [ "WP"  "WP"  "  "  "  "  "WP"  "WP"  "WP"  "WP" ]
          [ "WR"  "WN"  "WB"  "WQ"  "WK"  "WB"  "  "  "WR" ]]
-        last-move ["c2" "c4"]
-        found-moves (set (map (partial map board-notation)
-                              (find-available-moves \B board last-move)))]
+        last-move ["c2" "c4"]]
     (fact "Engine knows en passant moves to the right"
-      (contains? found-moves ["b4" "c3"]) => true)
+      (contains? (found-moves-notation \B board last-move) ["b4" "c3"]) => true)
     (fact "Engine understands results of en passant moves to the right"
       (move board "b4" "c3") => board'))
 
@@ -117,9 +118,7 @@
          [ "  "  "  "  "  "  "  "  "WK"  "  "  "  "  "  " ]]
         last-move ["a3" "a4"]]
     (fact "Engine checks the last move for en passant"
-      (let [found-moves (set (map (partial map board-notation)
-                                  (find-available-moves \B board last-move)))]
-        (contains? found-moves ["b4" "a3"])) => false)
+      (contains? (found-moves-notation \B board last-move) ["b4" "a3"]) => false)
     (fact "Engine makes an obvious best move when en passant not possible"
       (choose-best-move \B board last-move) => ["b4" "b3"])))
 
@@ -142,27 +141,80 @@
          [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
          [ "  "  "WP"  "WN"  "WP"  "WB"  "  "  "  "  "  " ]
          [ "WP"  "  "  "WP"  "WQ"  "WP"  "WP"  "WP"  "WP" ]
-         [ "  "  "  "  "WK"  "WR"  "  "  "WB"  "WN"  "WR" ]]]
+         [ "  "  "  "  "WK"  "WR"  "  "  "WB"  "WN"  "WR" ]]
+        last-move ["b2" "b3"]
+        white-castling-queenside ["e1" "c1"]]
+    (fact "Engine considers white castling queenside"
+      (found-moves-notation \W board last-move) =>
+      (contains [white-castling-queenside]))
     (fact "Engine understands the result of white castling queenside"
       (move board "e1" "c1") => board'))
 
-    (let [board
-          [[ "BR"  "WN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-           [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
-           [ "BP"  "  "  "BP"  "  "  "BP"  "  "  "  "  "  " ]
-           [ "  "  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
-           [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
-           [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "WN" ]
-           [ "WP"  "WP"  "WP"  "WP"  "WP"  "  "  "WB"  "WP" ]
-           [ "WR"  "WN"  "WB"  "WQ"  "WK"  "  "  "  "  "WR" ]]
-          board'
-          [[ "BR"  "WN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-           [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
-           [ "BP"  "  "  "BP"  "  "  "BP"  "  "  "  "  "  " ]
-           [ "  "  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
-           [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
-           [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "WN" ]
-           [ "WP"  "WP"  "WP"  "WP"  "WP"  "  "  "WB"  "WP" ]
-           [ "WR"  "WN"  "WB"  "WQ"  "  "  "WR"  "WK"  "  " ]]]
+
+(let [board
+      [[ "BR"  "WN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
+       [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
+       [ "BP"  "  "  "BP"  "  "  "BP"  "  "  "  "  "  " ]
+       [ "  "  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
+       [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
+       [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "WN" ]
+       [ "WP"  "WP"  "WP"  "WP"  "WP"  "  "  "WB"  "WP" ]
+       [ "WR"  "WN"  "WB"  "WQ"  "WK"  "  "  "  "  "WR" ]]
+      board'
+      [[ "BR"  "WN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
+       [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
+       [ "BP"  "  "  "BP"  "  "  "BP"  "  "  "  "  "  " ]
+       [ "  "  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
+       [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
+       [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "WN" ]
+       [ "WP"  "WP"  "WP"  "WP"  "WP"  "  "  "WB"  "WP" ]
+       [ "WR"  "WN"  "WB"  "WQ"  "  "  "WR"  "WK"  "  " ]]
+      last-move ["a7" "a6"]
+      white-castling-kingside ["e1" "g1"]]
+    (fact "Engine considers white castling kingside"
+      (found-moves-notation \W board last-move) =>
+      (contains [white-castling-kingside]))
     (fact "Engine understands the result of white castling kingside"
-      (move board "e1" "g1") => board')))
+      (move board "e1" "g1") => board'))
+
+  (let [board
+        [[ "BR"  "  "  "  "  "  "  "BK"  "BB"  "BN"  "BR" ]
+         [ "BP"  "BP"  "BQ"  "BB"  "BP"  "BP"  "BP"  "BP" ]
+         [ "WN"  "  "  "BP"  "BP"  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
+         [ "  "  "  "  "WP"  "  "  "  "  "WP"  "  "  "  " ]
+         [ "WP"  "WP"  "WQ"  "WP"  "WP"  "  "  "  "  "WP" ]
+         [ "WR"  "WN"  "WB"  "  "  "WK"  "WB"  "WN"  "WR" ]]
+        board'
+        [[ "  "  "  "  "BK"  "BR"  "  "  "BB"  "BN"  "BR" ]
+         [ "BP"  "BP"  "BQ"  "BB"  "BP"  "BP"  "BP"  "BP" ]
+         [ "WN"  "  "  "BP"  "BP"  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
+         [ "  "  "  "  "WP"  "  "  "  "  "WP"  "  "  "  " ]
+         [ "WP"  "WP"  "WQ"  "WP"  "WP"  "  "  "  "  "WP" ]
+         [ "WR"  "WN"  "WB"  "  "  "WK"  "WB"  "WN"  "WR" ]]]
+    (fact "Engine understands the result of black castling queenside"
+      (move board "e8" "c8") => board'))
+
+  (let [board
+        [[ "BR"  "WN"  "BB"  "BQ"  "BK"  "  "  "  "  "BR" ]
+         [ "BP"  "BP"  "  "  "BP"  "BB"  "BP"  "BP"  "BP" ]
+         [ "  "  "  "  "BP"  "  "  "BP"  "BN"  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
+         [ "  "  "  "  "WP"  "  "  "  "  "WP"  "  "  "  " ]
+         [ "WP"  "WP"  "WQ"  "WP"  "WP"  "  "  "  "  "WP" ]
+         [ "WR"  "WN"  "WB"  "  "  "WK"  "WB"  "WN"  "WR" ]]
+        board'
+        [[ "BR"  "WN"  "BB"  "BQ"  "  "  "BR"  "BK"  "  " ]
+         [ "BP"  "BP"  "  "  "BP"  "BB"  "BP"  "BP"  "BP" ]
+         [ "  "  "  "  "BP"  "  "  "BP"  "BN"  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
+         [ "  "  "  "  "WP"  "  "  "  "  "WP"  "  "  "  " ]
+         [ "WP"  "WP"  "WQ"  "WP"  "WP"  "  "  "  "  "WP" ]
+         [ "WR"  "WN"  "WB"  "  "  "WK"  "WB"  "WN"  "WR" ]]]
+    (fact "Engine understands the result of black castling kingside"
+      (move board "e8" "g8") => board')))
