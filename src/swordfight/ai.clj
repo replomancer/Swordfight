@@ -28,32 +28,30 @@
 (def minimax-depth 2)
 
 
-(defn find-available-moves [side board last-move]
+(defn find-available-moves [game-state]
   (mapcat (fn [[coords]]
-            (for [possible-move (possible-moves board coords side last-move)]
-              [coords possible-move]))
+            (for [possible-move (possible-moves (:board game-state)
+                                                coords
+                                                (:turn game-state)
+                                                (:last-move game-state))]
+              [(board-notation coords) (board-notation possible-move)]))
           (for [y (range 8) x (range 8)] [[y x]])))
 
 
 (defn choose-best-move
-  ([side board last-move]
-   (first (choose-best-move side board last-move minimax-depth)))
-  ([side board last-move depth]
-   (let [available-moves (find-available-moves side board last-move)]
-     (apply (if (= side \B) max-key min-key)
+  ([game-state]
+   (first (choose-best-move game-state minimax-depth)))
+  ([game-state depth]
+   (let [available-moves (find-available-moves game-state)]
+     (apply (if (= (:turn game-state) \B) max-key min-key)
             second ;; board evaluation is second in the pair
             (for [piece-move available-moves]
-              (let [square-from (board-coords (first piece-move))
-                    square-to (board-coords (second piece-move))
-                    board-after-move (move board square-from square-to)
+              (let [state-after-move (move game-state piece-move)
                     board-value (if-not (pos? depth)
-                                  (eval-board board-after-move)
-                                  (second (choose-best-move
-                                           (change-side side)
-                                           board-after-move
-                                           (map board-notation piece-move)
-                                           (dec depth))))]
-                [[square-from square-to] board-value]))))))
+                                  (eval-board (:board state-after-move))
+                                  (second (choose-best-move state-after-move
+                                                            (dec depth))))]
+                [piece-move board-value]))))))
 
 
 (defn mexican-defense [game-state game-settings _]
@@ -62,12 +60,7 @@
         [square-from square-to] (if (and (< moves-cnt (count first-moves))
                                          (false? (:edited game-state)))
                                   (first-moves moves-cnt)
-                                  (choose-best-move
-                                   \B
-                                   (:board game-state)
-                                   (:last-move game-state)))]
-    [(-> (update game-state :board move square-from square-to)
-         (update :moves-cnt inc)
-         (assoc :last-move [square-from square-to]))
+                                  (choose-best-move game-state))]
+    [(move game-state [square-from square-to])
      game-settings
      (str "move " square-from square-to)]))

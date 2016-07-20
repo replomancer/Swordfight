@@ -19,9 +19,13 @@
   (vec (repeat 8 (vec (repeat 8 empty-square)))))
 
 (def initial-game-state {:board initial-board
-                         :turn "white"
+                         :turn \W
                          :moves-cnt 0
                          :edited false
+                         :white-can-castle-ks true
+                         :white-can-castle-qs true
+                         :black-can-castle-ks true
+                         :black-can-castle-qs true
                          :last-move [nil nil]})
 
 (def board-coords
@@ -257,40 +261,82 @@
     (assoc-in board [y x] piece)))
 
 
-(defn move [board from-pos to-pos]
+(defn update-castling-info [game-state piece-moved-from]
+  ;; If a piece is moved from e1 square, it means the king
+  ;; has moved (just now or before - making place for another piece).
+  ;; Same with black king and rooks.
+  (cond (= piece-moved-from "e1")
+        (assoc game-state
+          :white-can-castle-ks false
+          :white-can-castle-qs false)
+        (= piece-moved-from "a1")
+        (assoc game-state
+          :white-can-castle-qs false)
+        (= piece-moved-from "h1")
+        (assoc game-state
+          :white-can-castle-ks false)
+        (= piece-moved-from "e8")
+        (assoc game-state
+          :black-can-castle-ks false
+          :black-can-castle-qs false)
+        (= piece-moved-from "a8")
+        (assoc game-state
+          :black-can-castle-qs false)
+        (= piece-moved-from "h8")
+        (assoc game-state
+          :black-can-castle-ks false)
+        :else game-state))
+
+
+(defn move-piece-on-board [board [from-pos to-pos]]
+  (let [[board' piece] (remove-piece board from-pos)]
+    [(put-piece board' to-pos piece) piece]))
+
+
+;; This function evaluates to a new board, not a [board piece] pair
+(defn possibly-extra-board-change [board piece piece-move]
+  (cond (= (piece-type piece) \K)
+        ;; extra tower moves when castling:
+        (cond (= piece-move ["e1" "c1"])  ;; white castling queenside
+              (first (move-piece-on-board board ["a1" "d1"]))
+
+              (= piece-move ["e1" "g1"]) ;; white castling kingside
+              (first (move-piece-on-board board ["h1" "f1"]))
+
+              (= piece-move ["e8" "c8"])  ;; black castling queenside
+              (first (move-piece-on-board board ["a8" "d8"]))
+
+              (= piece-move ["e8" "g8"]) ;; black castling kingside
+              (first (move-piece-on-board board ["h8" "f8"]))
+
+              :else board)
+
+        (= (piece-type piece) \P)
+        ;; en passant moves require removing pawns
+        ;; Condition: the pawn is changing column
+        ;;            (we assume here the move was legal)
+        (let [[[from-y from-x] [to-y to-x]] (map board-coords piece-move)]
+          (if (not= from-x to-x)
+            (first (remove-piece board (board-notation [from-y to-x])))
+            board))
+
+        :else board))
+
+
+(defn move [game-state [from-pos to-pos]]
   ;; This function always assumes the move is legal
-  (let [[board' piece] (remove-piece board from-pos)
-        board''
-        ;; special cases where extra pieces need to be moved or removed
-        (cond (= (piece-type piece) \K)
-              ;; extra tower moves when castling:
-              (cond (= [from-pos to-pos] ["e1" "c1"])  ;; white castling queenside
-                    (move board' "a1" "d1")
-
-                    (= [from-pos to-pos] ["e1" "g1"]) ;; white castling kingside
-                    (move board' "h1" "f1")
-
-                    (= [from-pos to-pos] ["e8" "c8"])  ;; black castling queenside
-                    (move board' "a8" "d8")
-
-                    (= [from-pos to-pos] ["e8" "g8"]) ;; black castling kingside
-                    (move board' "h8" "f8")
-
-                    :else board')
-
-              (= (piece-type piece) \P)
-              ;; en passant moves require removing pawns
-              ;; Condition: the pawn is changing column, but the target square is empty
-              (let [[from-y from-x] (board-coords from-pos)
-                    [to-y to-x] (board-coords to-pos)]
-                (if (and (not= from-x to-x)
-                         (empty-square? (get-in board [to-y to-x])))
-                  (first (remove-piece board' (board-notation [from-y to-x])))
-                  board'))
-
-              :else board')]
-
-    (put-piece board'' to-pos piece)))
+  (let [new-board
+        (let [[board' piece] (move-piece-on-board
+                              (:board game-state) [from-pos to-pos])
+              ;; special cases where extra pieces need to be moved or removed
+              board'' (possibly-extra-board-change board' piece [from-pos to-pos])]
+          board'')
+        new-game-state (-> (assoc game-state :board new-board)
+                           (update-castling-info from-pos)
+                           (update :turn change-side)
+                           (update :moves-cnt inc)
+                           (assoc :last-move [from-pos to-pos]))]
+    new-game-state))
 
 
 (defn promote [board position new-piece-type]

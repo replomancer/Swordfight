@@ -1,6 +1,7 @@
 (ns swordfight.cecp
   (:use [swordfight.game-rules :only [black? empty-board initial-game-state move promote
-                                      put-piece legal-destination-indexes]]
+                                      put-piece legal-destination-indexes
+                                      update-castling-info]]
         [swordfight.ai :only [mexican-defense]]
         [swordfight.debug :only [show-game-state]]))
 
@@ -14,14 +15,13 @@
   [(assoc game-state :quitting true) game-settings "Finished."])
 
 
-(defn MOVE [game-state game-settings cmd-vector]
+(defn make-move [game-state game-settings cmd-vector]
   (let [algebraic-notation (first cmd-vector)
         pos1 (subs algebraic-notation 0 2) ;; FIXME: notation parsing
         pos2 (subs algebraic-notation 2 4)
         promoted-to (when (> (.length algebraic-notation) 4)
                       (subs algebraic-notation 4 5))
-        game-state' (-> (update game-state :board move pos1 pos2)
-                        (assoc :last-move [pos1 pos2])
+        game-state' (-> (move game-state [pos1 pos2])
                         (update :board promote pos2 promoted-to))]
         (when (:debug-mode game-settings)
           (show-game-state game-state'))
@@ -70,6 +70,6 @@
                       (and (>= (.length cmd) 4)
                            (Character/isDigit (.charAt cmd 1))) (comp
                                                                  #(apply mexican-defense %)
-                                                                 MOVE)
+                                                                 make-move)
                       :else (get cmd-fun-mapping cmd ignore))]
     (cmd-fun game-state game-settings cmd-vector)))
