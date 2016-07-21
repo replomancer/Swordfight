@@ -1,13 +1,14 @@
 [![Build Status](https://travis-ci.org/evalapply/Swordfight.svg?branch=master)](https://travis-ci.org/evalapply/Swordfight)
 
-# Swordfight                                                                                          
+# Swordfight
+
 
 "*A game of chess is like a sword fight. You must think first before you move.*"
 ([Shaolin and Wu Tang](https://en.wikipedia.org/wiki/Shaolin_and_Wu_Tang))
 
-Swordfight is a chess engine (no GUI, just a chess AI).
+Swordfight is a chess engine (no GUI, just a chess AI). It's CECP-compatible and
+works with XBoard GUI.
 
-It's for fun. I know Clojure is not a good choice for a chess engine.
 
 ## Usage
 
@@ -34,7 +35,7 @@ terminal is highly recommended for the debug output (chess board):
 
 ```
 # {:xboard-mode false, :debug-mode true, :edition-current-color W}
-# {:turn white, :moves-cnt 0, :edited false, :last-move nil}
+# {:white-can-castle-ks true, :black-can-castle-qs true, :last-move [     ], :edited false, :turn W, :black-can-castle-ks true, :moves-cnt 0, :white-can-castle-qs true}
 #
 # 8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
 # 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
@@ -48,7 +49,7 @@ terminal is highly recommended for the debug output (chess board):
 #    a b c d e f g h
 #
 > e2e4
-# {:turn white, :moves-cnt 0, :edited false, :last-move [e2 e4]}
+# {:white-can-castle-ks true, :black-can-castle-qs true, :last-move [e2 e4], :edited false, :turn B, :black-can-castle-ks true, :moves-cnt 1, :white-can-castle-qs true}
 #
 # 8  ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
 # 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
@@ -63,7 +64,7 @@ terminal is highly recommended for the debug output (chess board):
 #
 move b8c6
 # {:xboard-mode false, :debug-mode true, :edition-current-color W}
-# {:turn white, :moves-cnt 1, :edited false, :last-move [b8 c6]}
+# {:white-can-castle-ks true, :black-can-castle-qs true, :last-move [b8 c6], :edited false, :turn W, :black-can-castle-ks true, :moves-cnt 2, :white-can-castle-qs true}
 #
 # 8  ♜   ♝ ♛ ♚ ♝ ♞ ♜
 # 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
@@ -76,69 +77,8 @@ move b8c6
 #
 #    a b c d e f g h
 #
-> d2d4
-# {:turn white, :moves-cnt 1, :edited false, :last-move [d2 d4]}
-#
-# 8  ♜   ♝ ♛ ♚ ♝ ♞ ♜
-# 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
-# 6      ♞          
-# 5                 
-# 4        ♙ ♙      
-# 3                 
-# 2  ♙ ♙ ♙     ♙ ♙ ♙
-# 1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
-#
-#    a b c d e f g h
-#
-move g8f6
-# {:xboard-mode false, :debug-mode true, :edition-current-color W}
-# {:turn white, :moves-cnt 2, :edited false, :last-move [g8 f6]}
-#
-# 8  ♜   ♝ ♛ ♚ ♝   ♜
-# 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
-# 6      ♞     ♞    
-# 5                 
-# 4        ♙ ♙      
-# 3                 
-# 2  ♙ ♙ ♙     ♙ ♙ ♙
-# 1  ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
-#
-#    a b c d e f g h
-#
-> f1b5
-# {:turn white, :moves-cnt 2, :edited false, :last-move [f1 b5]}
-#
-# 8  ♜   ♝ ♛ ♚ ♝   ♜
-# 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
-# 6      ♞     ♞    
-# 5    ♗            
-# 4        ♙ ♙      
-# 3                 
-# 2  ♙ ♙ ♙     ♙ ♙ ♙
-# 1  ♖ ♘ ♗ ♕ ♔   ♘ ♖
-#
-#    a b c d e f g h
-#
-move f6e4
-# {:xboard-mode false, :debug-mode true, :edition-current-color W}
-# {:turn white, :moves-cnt 3, :edited false, :last-move [f6 e4]}
-#
-# 8  ♜   ♝ ♛ ♚ ♝   ♜
-# 7  ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
-# 6      ♞          
-# 5    ♗            
-# 4        ♙ ♞      
-# 3                 
-# 2  ♙ ♙ ♙     ♙ ♙ ♙
-# 1  ♖ ♘ ♗ ♕ ♔   ♘ ♖
-#
-#    a b c d e f g h
-#
-> 
+>
 ```
-
-The engine currently doesn't check if moves are legal, so you can move any piece or even
-empty square anywhere.
 
 I think the unicode chess pieces look pretty neat!
 
