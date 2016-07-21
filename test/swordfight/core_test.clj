@@ -138,7 +138,7 @@
          [ "  "  "WP"  "WN"  "WP"  "WB"  "  "  "  "  "  " ]
          [ "WP"  "  "  "WP"  "WQ"  "WP"  "WP"  "WP"  "WP" ]
          [ "  "  "  "  "WK"  "WR"  "  "  "WB"  "WN"  "WR" ]]
-        game-state {:board board :turn \W :last-move ["b2" "b3"] :moves-cnt 0
+        game-state {:board board :turn \W :last-move ["b7" "b6"] :moves-cnt 0
                     :white-can-castle-qs true}
         white-castling-queenside ["e1" "c1"]]
     (fact "Engine considers white castling queenside"
@@ -273,8 +273,34 @@
          [ "WK"  "WP"  "  "  "  "  "  "  "  "  "  "  "  " ]
          [ "WR"  "WN"  "BN"  "  "  "  "  "  "  "  "  "  " ]]
         promotion-move ["c2" "c1N"]
-        game-state {:board board :turn \B :last-move ["a5" "a6"] :moves-cnt 0}]
+        game-state {:board board :turn \B :last-move ["b3" "a2"] :moves-cnt 0}]
     (fact "Engine promotes pawns to knights"
       (choose-best-move game-state) => promotion-move)
     (fact "Engine understands the result of pawn promotion to knight"
       (:board (move game-state promotion-move)) => board')))
+
+(facts "about basic moves"
+  (let [board
+        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "BP" ]
+         [ "WK"  "WP"  "  "  "  "  "  "  "  "  "WP"  "WP" ]
+         [ "WR"  "WN"  "  "  "  "  "  "  "  "  "  "  "  " ]]
+        board'
+        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "WP" ]
+         [ "WK"  "WP"  "  "  "  "  "  "  "  "  "  "  "WP" ]
+         [ "WR"  "WN"  "  "  "  "  "  "  "  "  "  "  "  " ]]
+        regular-pawn-attack ["g2" "h3"]
+        game-state {:board board :turn \W :last-move ["h4" "h3"] :moves-cnt 0}]
+    (fact "Engine chooses to attack with pawn"
+      (choose-best-move game-state) => regular-pawn-attack)
+    (fact "Engine understands the result of pawn attack"
+      (:board (move game-state regular-pawn-attack)) => board')))
