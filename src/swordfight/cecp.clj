@@ -18,14 +18,11 @@
 (defn make-move [game-state game-settings cmd-vector]
   (let [algebraic-notation (first cmd-vector)
         pos1 (subs algebraic-notation 0 2) ;; FIXME: notation parsing
-        pos2 (subs algebraic-notation 2 4)
-        promoted-to (when (> (.length algebraic-notation) 4)
-                      (subs algebraic-notation 4 5))
-        game-state' (-> (move game-state [pos1 pos2])
-                        (update :board promote pos2 promoted-to))]
-        (when (:debug-mode game-settings)
-          (show-game-state game-state'))
-        [game-state' game-settings ""]))
+        pos2 (subs algebraic-notation 2)
+        game-state' (move game-state [pos1 pos2])]
+    (when (:debug-mode game-settings)
+      (show-game-state game-state'))
+    [game-state' game-settings ""]))
 
 
 (defn edit [game-state game-settings cmd-vector]

@@ -227,3 +227,54 @@
       (find-available-moves game-state) => (contains [black-castling-kingside]))
     (fact "Engine understands the result of black castling kingside"
       (:board (move game-state black-castling-kingside)) => board')))
+
+(facts "about pawn promotion"
+  (let [board
+        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "BP"  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "WK"  "  "  "  "  "  " ]]
+        board'
+        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "BP"  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "BQ"  "  "  "  "  "WK"  "  "  "  "  "  " ]]
+        promotion-move ["b2" "b1Q"]
+        game-state {:board board :turn \B :last-move ["a5" "a6"] :moves-cnt 0}]
+    (fact "Engine promotes pawns to queens"
+      (choose-best-move game-state) => promotion-move)
+    (fact "Engine understands the result of pawn promotion to queen"
+      (:board (move game-state promotion-move)) => board'))
+
+  (let [board
+        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "BR" ]
+         [ "WK"  "WP"  "BP"  "  "  "  "  "  "  "  "  "  " ]
+         [ "WR"  "WN"  "  "  "  "  "  "  "  "  "  "  "  " ]]
+        board'
+        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "BR" ]
+         [ "WK"  "WP"  "  "  "  "  "  "  "  "  "  "  "  " ]
+         [ "WR"  "WN"  "BN"  "  "  "  "  "  "  "  "  "  " ]]
+        promotion-move ["c2" "c1N"]
+        game-state {:board board :turn \B :last-move ["a5" "a6"] :moves-cnt 0}]
+    (fact "Engine promotes pawns to knights"
+      (choose-best-move game-state) => promotion-move)
+    (fact "Engine understands the result of pawn promotion to knight"
+      (:board (move game-state promotion-move)) => board')))
