@@ -45,7 +45,7 @@
 
 
 (defn mexican-defense [game-state game-settings _]
-  (let [first-moves [["b8" "c6"] ["g8" "f6"]]
+  (let [first-moves [[nil nil] ["b8" "c6"] [nil nil] ["g8" "f6"]]
         moves-cnt (:moves-cnt game-state)
         [square-from square-to] (if (and (< moves-cnt (count first-moves))
                                          (false? (:edited game-state)))
