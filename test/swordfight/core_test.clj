@@ -2,8 +2,9 @@
   (:use [midje.sweet :only [facts fact contains]]
         [swordfight.core :only [initial-settings]]
         [swordfight.game-rules :only [initial-game-state change-side move
-                                      board-coords board-notation empty-square?]]
-        [swordfight.ai :only [find-available-moves choose-best-move]]))
+                                      board-coords board-notation empty-square?
+                                      find-available-moves]]
+        [swordfight.ai :only [choose-best-move]]))
 
 
 (defn legal-moves-cnt-in-turn
@@ -24,10 +25,9 @@
   (fact (legal-moves-cnt-in-turn 3) => 8902)
   (fact (legal-moves-cnt-in-turn 4) => 197742)
   ;; TODO:
-  ;; - The test fails for turn 5
   ;; - Find the right value for turn 6
   ;; - Improve the test speed
-  ;;(fact (legal-moves-cnt-in-turn 5) => 4897256)
+  (fact (legal-moves-cnt-in-turn 5) => 4897256)
   ;;(fact (legal-moves-cnt-in-turn 6) => 120000000)
 )
 
@@ -136,7 +136,8 @@
          [ "  "  "WP"  "WN"  "WP"  "WB"  "  "  "  "  "  " ]
          [ "WP"  "  "  "WP"  "WQ"  "WP"  "WP"  "WP"  "WP" ]
          [ "  "  "  "  "WK"  "WR"  "  "  "WB"  "WN"  "WR" ]]
-        game-state {:board board :turn \B :last-move ["b2" "b3"] :moves-cnt 0}
+        game-state {:board board :turn \W :last-move ["b2" "b3"] :moves-cnt 0
+                    :white-can-castle-qs true}
         white-castling-queenside ["e1" "c1"]]
     (fact "Engine considers white castling queenside"
       (find-available-moves game-state) =>
@@ -164,7 +165,8 @@
          [ "WP"  "WP"  "WP"  "WP"  "WP"  "  "  "WB"  "WP" ]
          [ "WR"  "WN"  "WB"  "WQ"  "  "  "WR"  "WK"  "  " ]]
         white-castling-kingside ["e1" "g1"]
-        game-state {:board board :turn \W :last-move ["a7" "a6"] :moves-cnt 0}]
+        game-state {:board board :turn \W :last-move ["a7" "a6"] :moves-cnt 0
+                    :white-can-castle-ks true}]
     (fact "Engine considers white castling kingside"
       (find-available-moves game-state) =>
       (contains [white-castling-kingside]))
@@ -190,7 +192,8 @@
          [ "WP"  "WP"  "WQ"  "WP"  "WP"  "  "  "  "  "WP" ]
          [ "WR"  "WN"  "WB"  "  "  "WK"  "WB"  "WN"  "WR" ]]
         black-castling-queenside ["e8" "c8"]
-        game-state {:board board :turn \B :last-move ["b3" "c2"] :moves-cnt 0}]
+        game-state {:board board :turn \B :last-move ["b3" "c2"] :moves-cnt 0
+                    :black-can-castle-qs true}]
     (fact "Engine considers black castling queenside"
       (find-available-moves game-state) =>
       (contains [black-castling-queenside]))
@@ -216,7 +219,8 @@
          [ "WP"  "WP"  "WQ"  "WP"  "WP"  "  "  "  "  "WP" ]
          [ "WR"  "WN"  "WB"  "  "  "WK"  "WB"  "WN"  "WR" ]]
         black-castling-kingside ["e8" "g8"]
-        game-state {:board board :turn \B :last-move ["b3" "c2"] :moves-cnt 0}]
+        game-state {:board board :turn \B :last-move ["b3" "c2"] :moves-cnt 0
+                    :black-can-castle-ks true}]
     (fact "Engine considers black castling kingside"
       (find-available-moves game-state) => (contains [black-castling-kingside]))
     (fact "Engine understands the result of black castling kingside"

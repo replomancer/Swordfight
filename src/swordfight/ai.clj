@@ -1,5 +1,5 @@
 (ns swordfight.ai
-  (:use [swordfight.game-rules :only [black? color change-side piece-type board-coords board-notation move possible-moves]]))
+  (:use [swordfight.game-rules :only [black? color change-side piece-type board-coords board-notation move find-available-moves]]))
 
 
 (defn eval-board [board]
@@ -26,16 +26,6 @@
 
 
 (def minimax-depth 2)
-
-
-(defn find-available-moves [game-state]
-  (mapcat (fn [[coords]]
-            (for [possible-move (possible-moves (:board game-state)
-                                                coords
-                                                (:turn game-state)
-                                                (:last-move game-state))]
-              [(board-notation coords) (board-notation possible-move)]))
-          (for [y (range 8) x (range 8)] [[y x]])))
 
 
 (defn choose-best-move

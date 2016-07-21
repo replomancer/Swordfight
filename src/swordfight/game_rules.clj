@@ -67,27 +67,50 @@
     [y x]))
 
 
-(defmulti legal-destination-indexes (fn [board square-coords piece last-move]
-                                      (piece-type piece)))
+(defmulti legal-destination-indexes (fn [game-state square-coords piece]                                      (piece-type piece)))
 
 
-(defmethod legal-destination-indexes \N [board square-coords piece _]
+(defn possible-moves-from-square [game-state from-square]
+  (let [piece (get-in (:board game-state) from-square)
+        [piece-color piece-type] piece]
+    (if (not= piece-color (:turn game-state))  ;; this check also covers empty squares
+      []
+      (legal-destination-indexes game-state from-square piece))))
+
+
+(defn find-available-moves [game-state]
+  (mapcat (fn [[coords]]
+            (for [possible-move (possible-moves-from-square game-state
+                                                            coords)]
+              [(board-notation coords) (board-notation possible-move)]))
+          (for [y (range 8) x (range 8)] [[y x]])))
+
+
+(defn squares-attacked-by-opponent [game-state]
+  (map second (find-available-moves
+               (update game-state :turn change-side))))
+
+
+(defmethod legal-destination-indexes \N [game-state square-coords piece]
   (filter (fn [[y x]] (and (on-board? [y x])
-                           (not= (color (get-in board [y x])) (color piece))))
+                           (not= (color (get-in (:board game-state) [y x])) (color piece))))
           (map #(map + square-coords %)
                [[-2 -1] [-1 -2] [+1 -2] [+2 -1]
                 [-2 +1] [-1 +2] [+1 +2] [+2 +1]])))
 
 
 ;; FIXME: refactor this
-(defmethod legal-destination-indexes \R [board square-coords piece _]
+(defmethod legal-destination-indexes \R [game-state square-coords piece]
   (let [non-blocked-square?
         (fn [[dy dx] [y x]]
           (and (on-board? [y x])
-               (let [square-piece (get-in board [y x])]
+               (let [square-piece (get-in game-state [:board y x])]
                  (and (not (same-color? piece square-piece))
                       (let [[prev-square-y prev-square-x] (map - [y x] [dy dx])
-                            prev-square-piece (get-in board [prev-square-y prev-square-x])]
+                            prev-square-piece (get-in game-state
+                                                      [:board
+                                                       prev-square-y
+                                                       prev-square-x])]
                         (or (empty-square? prev-square-piece)
                             (not (opposite-color? piece prev-square-piece))))))))]
     (concat
@@ -109,11 +132,13 @@
       (map #(map + square-coords %) (for [dx (range +1 +8 +1)] [0 dx]))))))
 
 
-(defmethod legal-destination-indexes \P [board [square-y square-x] piece last-move]
+(defmethod legal-destination-indexes \P [game-state [square-y square-x] piece]
   (let [[forward-direction starting-row en-passant-row promotion-row]
-        (if (black? (get-in board [square-y square-x]))
+        (if (black? (get-in game-state [:board square-y square-x]))
           [+1 1 4 7]
           [-1 6 3 0])
+        board (:board game-state)
+        last-move (:last-move game-state)
         forward-y (+ square-y forward-direction)
         left-x (dec square-x)
         right-x (inc square-x)
@@ -125,7 +150,8 @@
         attack-right (when (on-board? [forward-y right-x])
                        (get-in board [forward-y right-x]))
         jump-forward-square (when (on-board? [jump-forward-y square-x])
-                              (get-in board [jump-forward-y square-x]))]
+                              (get-in game-state [:board
+                                                  jump-forward-y square-x]))]
     (remove nil?
             [(when (and forward-square (empty-square? forward-square))
                [forward-y square-x])
@@ -141,7 +167,8 @@
              (when (= square-y en-passant-row)
                (let [last-move-from (board-coords (first last-move))
                      last-move-to (board-coords (second last-move))
-                     last-moved-piece (get-in board (board-coords (second last-move)))]
+                     last-moved-piece (get-in (:board game-state)
+                                              (board-coords (second last-move)))]
                  (when (= (piece-type last-moved-piece) \P)
                    (if (and attack-left
                             (= last-move-from [jump-forward-y left-x])
@@ -153,8 +180,9 @@
                        [forward-y right-x])))))])))
 
 
-(defmethod legal-destination-indexes \Q [board square-coords piece _]
-  (let [non-blocked-square?
+(defmethod legal-destination-indexes \Q [game-state square-coords piece]
+  (let [board (:board game-state)
+        non-blocked-square?
         (fn [[dy dx] [y x]]
           (and (on-board? [y x])
                (let [square-piece (get-in board [y x])]
@@ -198,8 +226,9 @@
       (map #(map + square-coords %) (for [d (range +1 +8 +1)] [d d]))))))
 
 
-(defmethod legal-destination-indexes \B [board square-coords piece _]
-  (let [non-blocked-square?
+(defmethod legal-destination-indexes \B [game-state square-coords piece]
+  (let [board (:board game-state)
+        non-blocked-square?
         (fn [[dy dx] [y x]]
           (and (on-board? [y x])
                (let [square-piece (get-in board [y x])]
@@ -227,27 +256,49 @@
       (map #(map + square-coords %) (for [d (range +1 +8 +1)] [d d]))))))
 
 
-(defmethod legal-destination-indexes \K [board square-coords piece _]
-  (filter (fn [[y x]]
-            (and (on-board? [y x])
-                 (let [square-piece (get-in board [y x])]
-                   (or (empty-square? square-piece)
-                       (opposite-color? piece square-piece)))))
-          (map #(map + square-coords %) [[-1  0] [-1 -1] [-1 +1]
-                                         [ 0 -1]         [ 0 +1]
-                                         [+1 -1] [+1  0] [+1 +1]])))
+(defmethod legal-destination-indexes \K [game-state square-coords piece]
+  (let [board (:board game-state)]
+    (concat
+     (filter (fn [[y x]]
+               (and (on-board? [y x])
+                    (let [square-piece (get-in board [y x])]
+                      (or (empty-square? square-piece)
+                          (opposite-color? piece square-piece)))))
+             (map #(map + square-coords %) [[-1  0] [-1 -1] [-1 +1]
+                                            [ 0 -1]         [ 0 +1]
+                                            [+1 -1] [+1  0] [+1 +1]]))
+     (when (and (= (:turn game-state) \W)
+                (= square-coords [7 4]))
+       (if (and (:white-can-castle-ks game-state)
+                (= [(get-in board [7 5]) (get-in board [7 6])]
+                   [empty-square empty-square])
+                (not (some #{"e1" "f1" "g1"}
+                           (squares-attacked-by-opponent game-state))))
+         [[7 6]]
+         (if (and (:white-can-castle-qs game-state)
+                  (= [(get-in board [7 3]) (get-in board [7 2])]
+                     [empty-square empty-square])
+                  (not (some #{"e1" "d1" "c1"}
+                             (squares-attacked-by-opponent game-state))))
+           [[7 2]])))
+     (when (and (= (:turn game-state) \B)
+                (= square-coords [0 4]))
+       (if (and (:black-can-castle-ks game-state)
+                (= [(get-in board [0 5]) (get-in board [0 6])]
+                   [empty-square empty-square])
+                (not (some #{"e8" "f8" "g8"}
+                           (squares-attacked-by-opponent game-state))))
+         [[0 6]]
+         (if (and (:black-can-castle-qs game-state)
+                  (= [(get-in board [0 3]) (get-in board [0 2])]
+                     [empty-square empty-square])
+                  (not (some #{"e8" "d8" "c8"}
+                             (squares-attacked-by-opponent game-state))))
+           [[0 2]]))))))
 
 
-(defmethod legal-destination-indexes :default [_ _ _ _]
+(defmethod legal-destination-indexes :default [_ _ _]
   [])
-
-
-(defn possible-moves [board from-square player-color last-move]
-  (let [piece (get-in board from-square)
-        [piece-color piece-type] piece]
-    (if (not= piece-color player-color) ;; this check also covers empty squares
-      []
-      (legal-destination-indexes board from-square piece last-move))))
 
 
 (defn remove-piece [board position]
