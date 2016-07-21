@@ -88,7 +88,11 @@
 
 (defn squares-attacked-by-opponent [game-state]
   (map second (find-available-moves
-               (update game-state :turn change-side))))
+               (-> (update game-state :turn change-side)
+                   (assoc :white-can-castle-ks false
+                          :white-can-castle-qs false
+                          :black-can-castle-ks false
+                          :black-can-castle-qs false)))))
 
 
 (defmethod legal-destination-indexes \N [game-state square-coords piece]
