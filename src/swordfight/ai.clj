@@ -1,5 +1,5 @@
 (ns swordfight.ai
-  (:use [swordfight.game-rules :only [black? color change-side piece-type board-coords board-notation move find-available-moves]]))
+  (:use [swordfight.game-rules :only [black? color change-side piece-type move find-available-moves]]))
 
 
 (defn eval-board [board]
@@ -44,13 +44,17 @@
                 [piece-move board-value]))))))
 
 
-(defn mexican-defense [game-state game-settings _]
+(defn mexican-defense [game-state game-settings msg]
   (let [first-moves [[nil nil] ["b8" "c6"] [nil nil] ["g8" "f6"]]
         moves-cnt (:moves-cnt game-state)
         [square-from square-to] (if (and (< moves-cnt (count first-moves))
                                          (false? (:edited game-state)))
                                   (first-moves moves-cnt)
                                   (choose-best-move game-state))]
-    [(move game-state [square-from square-to])
-     game-settings
-     (str "move " square-from square-to)]))
+    (if (= (:turn game-state) \B)
+      [(move game-state [square-from square-to])
+       game-settings
+       (str "move " square-from square-to)]
+      [game-state
+       game-settings
+       msg])))

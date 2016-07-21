@@ -28,7 +28,7 @@
                          :black-can-castle-qs true
                          :last-move ["  " "  "]})
 
-(def board-coords
+(def notation->coords
   {"a8" [0 0] "b8" [0 1] "c8" [0 2] "d8" [0 3] "e8" [0 4] "f8" [0 5] "g8" [0 6] "h8" [0 7]
    "a7" [1 0] "b7" [1 1] "c7" [1 2] "d7" [1 3] "e7" [1 4] "f7" [1 5] "g7" [1 6] "h7" [1 7]
    "a6" [2 0] "b6" [2 1] "c6" [2 2] "d6" [2 3] "e6" [2 4] "f6" [2 5] "g6" [2 6] "h6" [2 7]
@@ -38,7 +38,7 @@
    "a2" [6 0] "b2" [6 1] "c2" [6 2] "d2" [6 3] "e2" [6 4] "f2" [6 5] "g2" [6 6] "h2" [6 7]
    "a1" [7 0] "b1" [7 1] "c1" [7 2] "d1" [7 3] "e1" [7 4] "f1" [7 5] "g1" [7 6] "h1" [7 7]})
 
-(def board-notation (map-invert board-coords))
+(def coords->notation (map-invert notation->coords))
 
 (def color first)
 
@@ -69,13 +69,14 @@
 
 
 (defn possible-moves-from-square [game-state from-square]
-  (let [piece (get-in (:board game-state) from-square)
+  (let [from-coords (notation->coords from-square)
+        piece (get-in (:board game-state) from-coords)
         [piece-color piece-type] piece]
     (if (not= piece-color (:turn game-state))  ;; this check also covers empty squares
       []
       (mapcat
        (fn [dest-yx] (let [[dest-y dest-x] dest-yx
-                           dest-notation (board-notation dest-yx)]
+                           dest-notation (coords->notation dest-yx)]
                        (if (and (= piece-type \P)
                                 (or (= dest-y 0) (= dest-y 7)))
                          ;; This is pawn promotion.
@@ -86,14 +87,15 @@
                           (str dest-notation "N")]
                          ;; default case:
                          [dest-notation])))
-       (legal-destination-indexes game-state from-square piece)))))
+       (legal-destination-indexes game-state from-coords piece)))))
 
 
 (defn find-available-moves [game-state]
   (mapcat (fn [[coords]]
-            (for [possible-move (possible-moves-from-square game-state
-                                                            coords)]
-              [(board-notation coords) possible-move]))
+            (let [pos-from (coords->notation coords)]
+              (for [possible-move (possible-moves-from-square game-state
+                                                              pos-from)]
+                [pos-from possible-move])))
           (for [y (range 8) x (range 8)] [[y x]])))
 
 
@@ -180,10 +182,10 @@
        [[forward-y right-x]])
 
      (when (= square-y en-passant-row)
-       (let [last-move-from (board-coords (first last-move))
-             last-move-to (board-coords (second last-move))
+       (let [last-move-from (notation->coords (first last-move))
+             last-move-to (notation->coords (second last-move))
              last-moved-piece (get-in (:board game-state)
-                                      (board-coords (second last-move)))]
+                                      (notation->coords (second last-move)))]
          (when (= (piece-type last-moved-piece) \P)
            (if (and attack-left
                     (= last-move-from [jump-forward-y left-x])
@@ -317,13 +319,13 @@
 
 
 (defn remove-piece [board position]
-  (let [[y x] (board-coords position)
+  (let [[y x] (notation->coords position)
         piece (get-in board [y x])]
     [(assoc-in board [y x] empty-square) piece]))
 
 
 (defn put-piece [board position piece]
-  (let [[y x] (board-coords position)]
+  (let [[y x] (notation->coords position)]
     (assoc-in board [y x] piece)))
 
 
@@ -363,7 +365,7 @@
 (defn promote [board promotion-notation]
   (let [position (subs promotion-notation 0 2)
         new-piece-type (.toUpperCase (subs promotion-notation 2 3))
-        [y x] (board-coords position)
+        [y x] (notation->coords position)
         piece-color (color (get-in board [y x]))]
     (put-piece board position (str piece-color new-piece-type))))
 
@@ -392,10 +394,10 @@
           (if pawn-promotion
             (promote new-board to-pos)
             ;; en passant moves require removing pawns:
-            (let [[[from-y from-x] [to-y to-x]] (map board-coords piece-move)
+            (let [[[from-y from-x] [to-y to-x]] (map notation->coords piece-move)
 
                   [[last-m-from-y last-m-from-x] [last-m-to-y last-m-to-x]]
-                  (map (comp board-coords #(subs % 0 2))
+                  (map (comp notation->coords #(subs % 0 2))
                        (:last-move game-state))
 
                   last-moved-piece
@@ -406,7 +408,7 @@
                        (= last-m-to-y from-y)
                        (= last-m-to-x to-x))
                 (first (remove-piece new-board
-                                     (board-notation [last-m-to-y last-m-to-x])))
+                                     (coords->notation [last-m-to-y last-m-to-x])))
                 new-board))))
 
         :else new-board))

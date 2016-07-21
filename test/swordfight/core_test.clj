@@ -1,8 +1,7 @@
 (ns swordfight.core-test
   (:use [midje.sweet :only [facts fact contains]]
         [swordfight.core :only [initial-settings]]
-        [swordfight.game-rules :only [initial-game-state change-side move
-                                      board-coords board-notation empty-square?
+        [swordfight.game-rules :only [initial-game-state move
                                       find-available-moves]]
         [swordfight.ai :only [choose-best-move]]))
 
