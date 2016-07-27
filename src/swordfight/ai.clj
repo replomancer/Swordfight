@@ -25,23 +25,30 @@
                    (get-in board [y x])))))
 
 
-(def minimax-depth 2)
+(def minimax-depth 3)
 
 
-(defn choose-best-move
-  ([game-state]
-   (first (choose-best-move game-state minimax-depth)))
-  ([game-state depth]
-   (let [available-moves (find-available-moves game-state)]
-     (apply (if (= (:turn game-state) \B) max-key min-key)
-            second ;; board evaluation is second in the pair
-            (for [piece-move available-moves]
+(defn choose-best-move-at-depth [game-state depth]
+  (let [available-moves (find-available-moves game-state)
+        mapping-fn ;; simple parallelization only for bigger cases
+                   (if (> depth 1) pmap map)]
+    (apply (if (= (:turn game-state) \B) max-key min-key)
+           second ;; board evaluation is second in the pair
+           (mapping-fn
+            (fn [piece-move]
               (let [state-after-move (move game-state piece-move)
                     board-value (if-not (pos? depth)
                                   (eval-board (:board state-after-move))
-                                  (second (choose-best-move state-after-move
-                                                            (dec depth))))]
-                [piece-move board-value]))))))
+                                  (second (choose-best-move-at-depth
+                                           state-after-move
+                                           (dec depth))))]
+                [piece-move board-value]))
+            available-moves))))
+
+
+(defn choose-best-move [game-state]
+  (let [[best-mv _] (choose-best-move-at-depth game-state minimax-depth)]
+    best-mv))
 
 
 (defn mexican-defense [game-state game-settings msg]

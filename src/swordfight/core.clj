@@ -34,4 +34,5 @@
                                             (eval-command game-state game-settings)
                                             (send-command))]
       (if-not (:quitting game-state')
-        (recur game-state' game-settings')))))
+        (recur game-state' game-settings'))))
+  (shutdown-agents))
