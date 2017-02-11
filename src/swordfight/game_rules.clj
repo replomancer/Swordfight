@@ -65,7 +65,24 @@
     [y x]))
 
 
-(defmulti legal-destination-indexes (fn [game-state square-coords piece]                                      (piece-type piece)))
+(def dir-up [-1 0])
+(def dir-down [+1 0])
+(def dir-left [0 -1])
+(def dir-right [0 +1])
+(def dir-up-left [-1 -1])
+(def dir-up-right [-1 +1])
+(def dir-down-left [+1 -1])
+(def dir-down-right [+1 +1])
+(def rook-directions [dir-up dir-down dir-left dir-right])
+(def bishop-directions [dir-up-left dir-up-right dir-down-left dir-down-right])
+(def all-directions (concat rook-directions bishop-directions))
+(def knight-moves [[-2 -1] [-1 -2] [+1 -2] [+2 -1]
+                   [-2 +1] [-1 +2] [+1 +2] [+2 +1]])
+(def king-basic-moves all-directions)
+
+
+(defmulti legal-destination-indexes
+  (fn [game-state square-coords [piece-color piece-type]] piece-type))
 
 
 (defn possible-moves-from-square [game-state from-square]
@@ -78,7 +95,7 @@
        (fn [dest-yx] (let [[dest-y dest-x] dest-yx
                            dest-notation (coords->notation dest-yx)]
                        (if (and (= piece-type \P)
-                                (or (= dest-y 0) (= dest-y 7)))
+                                (some #{dest-y} [0 7]))
                          ;; This is pawn promotion.
                          ;; One target index translates to two moves.
                          ;; Queen is almost always best. Knight is the only one
@@ -108,225 +125,115 @@
                  :black-can-castle-qs false))))
 
 
-(defmethod legal-destination-indexes \N [game-state square-coords piece]
-  (filter (fn [[y x]] (and (on-board? [y x])
-                           (not= (color (get-in (:board game-state) [y x])) (color piece))))
-          (map #(map + square-coords %)
-               [[-2 -1] [-1 -2] [+1 -2] [+2 -1]
-                [-2 +1] [-1 +2] [+1 +2] [+2 +1]])))
+(defn take-while-and-next-one [pred coll]
+  (let [[take-while-part remaining] (split-with pred coll)]
+    [take-while-part (first remaining)]))
 
 
-;; FIXME: refactor this
-(defmethod legal-destination-indexes \R [game-state square-coords piece]
-  (let [non-blocked-square?
-        (fn [[dy dx] [y x]]
-          (and (on-board? [y x])
-               (let [square-piece (get-in game-state [:board y x])]
-                 (and (not (same-color? piece square-piece))
-                      (let [[prev-square-y prev-square-x] (map - [y x] [dy dx])
-                            prev-square-piece (get-in game-state
-                                                      [:board
-                                                       prev-square-y
-                                                       prev-square-x])]
-                        (or (empty-square? prev-square-piece)
-                            (not (opposite-color? piece prev-square-piece))))))))]
-    (concat
-     ;; moves upward
-     (take-while
-      (partial non-blocked-square? [-1 0])
-      (map #(map + square-coords %) (for [dy (range -1 -8 -1)] [dy 0])))
-     ;; moves downward
-     (take-while
-      (partial non-blocked-square? [+1 0])
-      (map #(map + square-coords %) (for [dy (range +1 +8 +1)] [dy 0])))
-     ;; moves left
-     (take-while
-      (partial non-blocked-square? [0 -1])
-      (map #(map + square-coords %) (for [dx (range -1 -8 -1)] [0 dx])))
-     ;; moves right
-     (take-while
-      (partial non-blocked-square? [0 +1])
-      (map #(map + square-coords %) (for [dx (range +1 +8 +1)] [0 dx]))))))
+(defn squares-to-go-in-dir [board piece-color pos dir]
+  (let [positions-on-board-in-dir (take-while on-board? (iterate (partial map + dir)
+                                                                 (map + pos dir)))
+        [empty-positions-in-dir first-non-empty-position]
+        (take-while-and-next-one #(empty-square? (get-in board %))
+                                 positions-on-board-in-dir)
+        blocking-piece (get-in board first-non-empty-position)]
+    (if (= piece-color (change-side (color blocking-piece)))
+      (concat empty-positions-in-dir [first-non-empty-position]) ;; attacking move
+      empty-positions-in-dir)))
 
 
-(defmethod legal-destination-indexes \P [game-state [square-y square-x] piece]
-  (let [[forward-direction starting-row en-passant-row promotion-row]
-        (if (black? (get-in game-state [:board square-y square-x]))
-          [+1 1 4 7]
-          [-1 6 3 0])
-        board (:board game-state)
-        last-move (:last-move game-state)
+(defn squares-to-go-in-directions [board piece-color pos dirs]
+  (mapcat (partial squares-to-go-in-dir board piece-color pos) dirs))
+
+
+(defmethod legal-destination-indexes \Q [{board :board} pos [piece-color _]]
+  (squares-to-go-in-directions board piece-color pos all-directions))
+
+
+(defmethod legal-destination-indexes \R [game-state pos [piece-color _]]
+  (squares-to-go-in-directions (:board game-state) piece-color pos rook-directions))
+
+
+(defmethod legal-destination-indexes \B [{board :board} pos [piece-color _]]
+  (squares-to-go-in-directions board piece-color pos bishop-directions))
+
+
+(defmethod legal-destination-indexes \N [{board :board} pos piece]
+  (filter (fn [[y x]] (let [square-piece (get-in board [y x])]
+                        (or (empty-square? square-piece)
+                            (opposite-color? piece square-piece))))
+          (map (partial map + pos) knight-moves)))
+
+
+(defmethod legal-destination-indexes \P [{:keys [board last-move]} [square-y square-x] piece]
+  (let [[forward-direction starting-row en-passant-row promotion-row] (if (black? piece)
+                                                                        [+1 1 4 7]
+                                                                        [-1 6 3 0])
+        [last-move-from last-move-to] (map notation->coords last-move)
+        last-moved-piece (get-in board last-move-to)
         forward-y (+ square-y forward-direction)
         left-x (dec square-x)
         right-x (inc square-x)
         jump-forward-y (+ square-y (* 2 forward-direction))
-        forward-square (when (on-board? [forward-y square-x])
-                         (get-in board [forward-y square-x]))
-        attack-left (when (on-board? [forward-y left-x])
-                      (get-in board [forward-y left-x]))
-        attack-right (when (on-board? [forward-y right-x])
-                       (get-in board [forward-y right-x]))
-        jump-forward-square (when (on-board? [jump-forward-y square-x])
-                              (get-in game-state [:board
-                                                  jump-forward-y square-x]))]
+        forward-square (get-in board [forward-y square-x])
+        forward-left-square (get-in board [forward-y left-x])
+        forward-right-square (get-in board [forward-y right-x])
+        jump-forward-square (get-in board [jump-forward-y square-x])]
     (concat
-     (when (and forward-square (empty-square? forward-square))
+     (when (empty-square? forward-square)
        [[forward-y square-x]])
      (when (and (= square-y starting-row)
                 (empty-square? forward-square)
                 (empty-square? jump-forward-square))
        [[jump-forward-y square-x]])
-     (when (and attack-left (opposite-color? piece attack-left))
+     (when (opposite-color? piece forward-left-square)
        [[forward-y left-x]])
-     (when (and attack-right (opposite-color? piece attack-right))
+     (when (opposite-color? piece forward-right-square)
        [[forward-y right-x]])
-
-     (when (= square-y en-passant-row)
-       (let [last-move-from (notation->coords (first last-move))
-             last-move-to (notation->coords (second last-move))
-             last-moved-piece (get-in (:board game-state)
-                                      (notation->coords (second last-move)))]
-         (when (= (piece-type last-moved-piece) \P)
-           (if (and attack-left
-                    (= last-move-from [jump-forward-y left-x])
-                    (= last-move-to [square-y left-x]))
+     (when (and (= square-y en-passant-row)
+                (= (piece-type last-moved-piece) \P))
+       (cond (= [last-move-from last-move-to]
+                [[jump-forward-y left-x] [square-y left-x]])
              [[forward-y left-x]]
-             (if (and attack-right
-                      (= last-move-from [jump-forward-y right-x])
-                      (= last-move-to [square-y right-x]))
-               [[forward-y right-x]]))))))))
+             (= [last-move-from last-move-to]
+                [[jump-forward-y right-x] [square-y right-x]])
+             [[forward-y right-x]])))))
 
 
-(defmethod legal-destination-indexes \Q [game-state square-coords piece]
-  (let [board (:board game-state)
-        non-blocked-square?
-        (fn [[dy dx] [y x]]
-          (and (on-board? [y x])
-               (let [square-piece (get-in board [y x])]
-                 (and (not (same-color? piece square-piece))
-                      (let [[prev-square-y prev-square-x] (map - [y x] [dy dx])
-                            prev-square-piece (get-in board [prev-square-y prev-square-x])]
-                        (or (empty-square? prev-square-piece)
-                            (not (opposite-color? piece prev-square-piece))))))))]
+(defmethod legal-destination-indexes \K [{:keys [board turn] :as game-state} square-coords piece]
+  (let [[can-castle-ks can-castle-qs ks-squares qs-squares] (if (= turn \W)
+                                                              [(:white-can-castle-ks game-state)
+                                                               (:white-can-castle-qs game-state)
+                                                               [[[7 5] [7 6]] #{"e1" "f1" "g1"}]
+                                                               [[[7 3] [7 2]] #{"e1" "d1" "c1"}]]
+                                                              [(:black-can-castle-ks game-state)
+                                                               (:black-can-castle-qs game-state)
+                                                               [[[0 5] [0 6]] #{"e8" "f8" "g8"}]
+                                                               [[[0 3] [0 2]] #{"e8" "d8" "c8"}]])]
     (concat
-     ;; moves upward
-     (take-while
-      (partial non-blocked-square? [-1 0])
-      (map #(map + square-coords %) (for [dy (range -1 -8 -1)] [dy 0])))
-     ;; moves downward
-     (take-while
-      (partial non-blocked-square? [+1 0])
-      (map #(map + square-coords %) (for [dy (range +1 +8 +1)] [dy 0])))
-     ;; moves left
-     (take-while
-      (partial non-blocked-square? [0 -1])
-      (map #(map + square-coords %) (for [dx (range -1 -8 -1)] [0 dx])))
-     ;; moves right
-     (take-while
-      (partial non-blocked-square? [0 +1])
-      (map #(map + square-coords %) (for [dx (range +1 +8 +1)] [0 dx])))
-     ;; moves up-left
-     (take-while
-      (partial non-blocked-square? [-1 -1])
-      (map #(map + square-coords %) (for [d (range -1 -8 -1)] [d d])))
-     ;; moves up-right
-     (take-while
-      (partial non-blocked-square? [-1 +1])
-      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [(- d) d])))
-     ;; moves down-left
-     (take-while
-      (partial non-blocked-square? [+1 -1])
-      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [d (- d)])))
-     ;; moves down-left
-     (take-while
-      (partial non-blocked-square? [+1 +1])
-      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [d d]))))))
-
-
-(defmethod legal-destination-indexes \B [game-state square-coords piece]
-  (let [board (:board game-state)
-        non-blocked-square?
-        (fn [[dy dx] [y x]]
-          (and (on-board? [y x])
-               (let [square-piece (get-in board [y x])]
-                 (and (not (same-color? piece square-piece))
-                      (let [[prev-square-y prev-square-x] (map - [y x] [dy dx])
-                            prev-square-piece (get-in board [prev-square-y prev-square-x])]
-                        (or (empty-square? prev-square-piece)
-                            (not (opposite-color? piece prev-square-piece))))))))]
-    (concat
-     ;; moves up-left
-     (take-while
-      (partial non-blocked-square? [-1 -1])
-      (map #(map + square-coords %) (for [d (range -1 -8 -1)] [d d])))
-     ;; moves up-right
-     (take-while
-      (partial non-blocked-square? [-1 +1])
-      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [(- d) d])))
-     ;; moves down-left
-     (take-while
-      (partial non-blocked-square? [+1 -1])
-      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [d (- d)])))
-     ;; moves down-left
-     (take-while
-      (partial non-blocked-square? [+1 +1])
-      (map #(map + square-coords %) (for [d (range +1 +8 +1)] [d d]))))))
-
-
-(defmethod legal-destination-indexes \K [game-state square-coords piece]
-  (let [board (:board game-state)]
-    (concat
-     (filter (fn [[y x]]
-               (and (on-board? [y x])
-                    (let [square-piece (get-in board [y x])]
-                      (or (empty-square? square-piece)
-                          (opposite-color? piece square-piece)))))
-             (map #(map + square-coords %) [[-1  0] [-1 -1] [-1 +1]
-                                            [ 0 -1]         [ 0 +1]
-                                            [+1 -1] [+1  0] [+1 +1]]))
-     (when (and (= (:turn game-state) \W)
-                (= square-coords [7 4]))
-       (if (and (:white-can-castle-ks game-state)
-                (= [(get-in board [7 5]) (get-in board [7 6])]
-                   [empty-square empty-square])
-                (not (some #{"e1" "f1" "g1"}
-                           (squares-attacked-by-opponent game-state))))
-         [[7 6]]
-         (if (and (:white-can-castle-qs game-state)
-                  (= [(get-in board [7 3]) (get-in board [7 2])]
-                     [empty-square empty-square])
-                  (not (some #{"e1" "d1" "c1"}
-                             (squares-attacked-by-opponent game-state))))
-           [[7 2]])))
-     (when (and (= (:turn game-state) \B)
-                (= square-coords [0 4]))
-       (if (and (:black-can-castle-ks game-state)
-                (= [(get-in board [0 5]) (get-in board [0 6])]
-                   [empty-square empty-square])
-                (not (some #{"e8" "f8" "g8"}
-                           (squares-attacked-by-opponent game-state))))
-         [[0 6]]
-         (if (and (:black-can-castle-qs game-state)
-                  (= [(get-in board [0 3]) (get-in board [0 2])]
-                     [empty-square empty-square])
-                  (not (some #{"e8" "d8" "c8"}
-                             (squares-attacked-by-opponent game-state))))
-           [[0 2]]))))))
-
-
-(defmethod legal-destination-indexes :default [_ _ _]
-  [])
+     (filter (fn [pos] (let [square-piece (get-in board pos)]
+                         (or (empty-square? square-piece)
+                             (opposite-color? piece square-piece))))
+             (map (partial map + square-coords) king-basic-moves))
+     (for [[castling-condition [middle-squares must-be-safe-squares]]
+           [[can-castle-ks ks-squares]
+            [can-castle-qs qs-squares]]
+           :when (and castling-condition
+                      (every? (comp empty-square? (partial get-in board)) middle-squares)
+                      (not-any? must-be-safe-squares
+                                (squares-attacked-by-opponent game-state)))]
+       (last middle-squares)))))
 
 
 (defn remove-piece [board position]
-  (let [[y x] (notation->coords position)
-        piece (get-in board [y x])]
-    [(assoc-in board [y x] empty-square) piece]))
+  (let [yx (notation->coords position)
+        piece (get-in board yx)]
+    [(assoc-in board yx empty-square) piece]))
 
 
 (defn put-piece [board position piece]
-  (let [[y x] (notation->coords position)]
-    (assoc-in board [y x] piece)))
+  (let [yx (notation->coords position)]
+    (assoc-in board yx piece)))
 
 
 (defn update-castling-info [game-state piece-moved-from]
@@ -365,8 +272,8 @@
 (defn promote [board promotion-notation]
   (let [position (subs promotion-notation 0 2)
         new-piece-type (.toUpperCase (subs promotion-notation 2 3))
-        [y x] (notation->coords position)
-        piece-color (color (get-in board [y x]))]
+        yx (notation->coords position)
+        piece-color (color (get-in board yx))]
     (put-piece board position (str piece-color new-piece-type))))
 
 
