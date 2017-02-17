@@ -1,21 +1,9 @@
 (ns swordfight.debug)
 
 (def pretty-unicode-piece
-  {
-   "BR" "♜"
-   "WR" "♖"
-   "BN" "♞"
-   "WN" "♘"
-   "BB" "♝"
-   "WB" "♗"
-   "BQ" "♛"
-   "WQ" "♕"
-   "BK" "♚"
-   "WK" "♔"
-   "BP" "♟"
-   "WP" "♙"
-   "  " " "
-   })
+  {\r "♜" \n "♞" \b "♝" \q "♛" \k "♚" \p "♟"
+   \R "♖" \N "♘" \B "♗" \Q "♕" \K "♔" \P "♙"
+   \. " "})
 
 (defn show-board [board]
   (println "#")
