@@ -1,7 +1,8 @@
 (ns swordfight.cecp
-  (:use [swordfight.game-rules :only [empty-board initial-game-state move
-                                      put-piece possible-moves-from-square
+  (:use [swordfight.game-rules :only [initial-game-state move
+                                      possible-moves-from-square
                                       update-castling-info]]
+        [swordfight.board :only [empty-board put-piece]]
         [swordfight.ai :only [mexican-defense]]
         [swordfight.debug :only [show-game-state]]))
 

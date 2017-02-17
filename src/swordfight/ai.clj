@@ -1,25 +1,12 @@
 (ns swordfight.ai
-  (:use [swordfight.game-rules :only [black? color change-side piece-type move find-available-moves]]))
+  (:use [swordfight.game-rules :only [move find-available-moves]]))
 
 
 (defn eval-board [board]
   ;; TODO: Currently it only cares about material
-  (reduce + (map {
-                              ;; FIXME:
-                  "BK" 200000 ;; higher value prevents engine from sacrificing
-                              ;; his king for white king in his plans
-                  "WK" -20000
-                  "BQ" 900
-                  "WQ" -900
-                  "BR" 500
-                  "WR" -500
-                  "BB" 300
-                  "WB" -300
-                  "BN" 300
-                  "WN" -300
-                  "BP" 100
-                  "WP" -100
-                  "  " 0}
+  (reduce + (map {\k  20000 \q  900 \r  500 \b  300 \n  300 \p  100
+                  \K -20000 \Q -900 \R -500 \B -300 \N -300 \P -100
+                  \. 0}
                  (for [y (range 8)
                        x (range 8)]
                    (get-in board [y x])))))

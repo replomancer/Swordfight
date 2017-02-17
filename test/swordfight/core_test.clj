@@ -35,25 +35,25 @@
 
 (facts "about en passant moves"
   (let [board
-        [[ "BR"  "BN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-         [ "BP"  "  "  "BP"  "BP"  "BP"  "BP"  "BP"  "BP" ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "WP"  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "WP"  "  "  "WN"  "  "  "  " ]
-         [ "  "  "WP"  "WP"  "  "  "WP"  "WP"  "WP"  "WP" ]
-         [ "WR"  "WN"  "WB"  "WQ"  "WK"  "WB"  "  "  "WR" ]]
+        [[ \r \n \b \q \k \b \n \r ]
+         [ \p \. \p \p \p \p \p \p ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \P \p \. \. \. \. \. \. ]
+         [ \. \. \. \P \. \N \. \. ]
+         [ \. \P \P \. \P \P \P \P ]
+         [ \R \N \B \Q \K \B \. \R ]]
         board'
-        [[ "BR"  "BN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-         [ "BP"  "  "  "BP"  "BP"  "BP"  "BP"  "BP"  "BP" ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "BP"  "  "  "  "  "WP"  "  "  "WN"  "  "  "  " ]
-         [ "  "  "WP"  "WP"  "  "  "WP"  "WP"  "WP"  "WP" ]
-         [ "WR"  "WN"  "WB"  "WQ"  "WK"  "WB"  "  "  "WR" ]]
+        [[ \r \n \b \q \k \b \n \r ]
+         [ \p \. \p \p \p \p \p \p ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \p \. \. \P \. \N \. \. ]
+         [ \. \P \P \. \P \P \P \P ]
+         [ \R \N \B \Q \K \B \. \R ]]
         en-passant-move ["b4" "a3"]
-        game-state {:board board :last-move ["a2" "a4"] :turn \B :moves-cnt 0}]
+        game-state {:board board :last-move ["a2" "a4" \P] :turn \B :moves-cnt 0}]
     (fact "Engine knows en passant moves to the left"
       (find-available-moves game-state) => (contains [en-passant-move]))
     (fact "Engine understands results of en passant moves to the left"
@@ -61,25 +61,25 @@
 
 
   (let [board
-        [[ "BR"  "BN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-         [ "BP"  "  "  "BP"  "BP"  "BP"  "BP"  "BP"  "BP" ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "BP"  "WP"  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "WP"  "  "  "WN"  "  "  "  " ]
-         [ "WP"  "WP"  "  "  "  "  "WP"  "WP"  "WP"  "WP" ]
-         [ "WR"  "WN"  "WB"  "WQ"  "WK"  "WB"  "  "  "WR" ]]
+        [[ \r \n \b \q \k \b \n \r ]
+         [ \p \. \p \p \p \p \p \p ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \p \P \. \. \. \. \. ]
+         [ \. \. \. \P \. \N \. \. ]
+         [ \P \P \. \. \P \P \P \P ]
+         [ \R \N \B \Q \K \B \. \R ]]
         board'
-        [[ "BR"  "BN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-         [ "BP"  "  "  "BP"  "BP"  "BP"  "BP"  "BP"  "BP" ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "BP"  "WP"  "  "  "WN"  "  "  "  " ]
-         [ "WP"  "WP"  "  "  "  "  "WP"  "WP"  "WP"  "WP" ]
-         [ "WR"  "WN"  "WB"  "WQ"  "WK"  "WB"  "  "  "WR" ]]
+        [[ \r \n \b \q \k \b \n \r ]
+         [ \p \. \p \p \p \p \p \p ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \p \P \. \N \. \. ]
+         [ \P \P \. \. \P \P \P \P ]
+         [ \R \N \B \Q \K \B \. \R ]]
         en-passant-move ["b4" "c3"]
-        game-state {:board board :last-move ["c2" "c4"] :turn \B :moves-cnt 0}]
+        game-state {:board board :last-move ["c2" "c4" \P] :turn \B :moves-cnt 0}]
     (fact "Engine knows en passant moves to the right"
       (find-available-moves game-state) => (contains [en-passant-move]))
     (fact "Engine understands results of en passant moves to the right"
@@ -87,31 +87,31 @@
 
 
   (let [board
-        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "WP"  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "WK"  "  "  "  "  "  " ]]
+        [[ \. \. \. \. \k \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \P \p \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \K \. \. \. ]]
         en-passant-move ["b4" "a3"]
-        game-state {:board board :turn \B :last-move ["a2" "a4"] :moves-cnt 0}]
+        game-state {:board board :turn \B :last-move ["a2" "a4" \P] :moves-cnt 0}]
     (fact "Engine makes en passant moves in an obvious scenario"
       (choose-best-move game-state) => en-passant-move))
 
 
   (let [board
-        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "WP"  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "WK"  "  "  "  "  "  " ]]
+        [[ \. \. \. \. \k \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \P \p \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \K \. \. \. ]]
         en-passant-move ["b4" "a3"]
-        game-state {:board board :turn \B :last-move ["a3" "a4"] :moves-cnt 0}]
+        game-state {:board board :turn \B :last-move ["a3" "a4" \P] :moves-cnt 0}]
     (fact "Engine checks the last move for en passant"
       (find-available-moves game-state) =not=> (contains [en-passant-move]))
     (fact "Engine makes an obvious best move when en passant not possible"
@@ -120,24 +120,24 @@
 
 (facts "about castling"
   (let [board
-        [[ "BR"  "  "  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-         [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
-         [ "BN"  "BP"  "BP"  "  "  "BP"  "  "  "  "  "  " ]
-         [ "BP"  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "WP"  "WN"  "WP"  "WB"  "  "  "  "  "  " ]
-         [ "WP"  "  "  "WP"  "WQ"  "WP"  "WP"  "WP"  "WP" ]
-         [ "WR"  "  "  "  "  "  "  "WK"  "WB"  "WN"  "WR" ]]
+        [[ \r \. \b \q \k \b \n \r ]
+         [ \. \. \. \p \. \p \p \p ]
+         [ \n \p \p \. \p \. \. \. ]
+         [ \p \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \P \N \P \B \. \. \. ]
+         [ \P \. \P \Q \P \P \P \P ]
+         [ \R \. \. \. \K \B \N \R ]]
         board'
-        [[ "BR"  "  "  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-         [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
-         [ "BN"  "BP"  "BP"  "  "  "BP"  "  "  "  "  "  " ]
-         [ "BP"  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "WP"  "WN"  "WP"  "WB"  "  "  "  "  "  " ]
-         [ "WP"  "  "  "WP"  "WQ"  "WP"  "WP"  "WP"  "WP" ]
-         [ "  "  "  "  "WK"  "WR"  "  "  "WB"  "WN"  "WR" ]]
-        game-state {:board board :turn \W :last-move ["b7" "b6"] :moves-cnt 0
+        [[ \r \. \b \q \k \b \n \r ]
+         [ \. \. \. \p \. \p \p \p ]
+         [ \n \p \p \. \p \. \. \. ]
+         [ \p \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \P \N \P \B \. \. \. ]
+         [ \P \. \P \Q \P \P \P \P ]
+         [ \. \. \K \R \. \B \N \R ]]
+        game-state {:board board :turn \W :last-move ["b7" "b6" \p] :moves-cnt 0
                     :white-can-castle-qs true}
         white-castling-queenside ["e1" "c1"]]
     (fact "Engine considers white castling queenside"
@@ -148,25 +148,25 @@
 
 
   (let [board
-        [[ "BR"  "WN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-         [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
-         [ "BP"  "  "  "BP"  "  "  "BP"  "  "  "  "  "  " ]
-         [ "  "  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "WN" ]
-         [ "WP"  "WP"  "WP"  "WP"  "WP"  "  "  "WB"  "WP" ]
-         [ "WR"  "WN"  "WB"  "WQ"  "WK"  "  "  "  "  "WR" ]]
+        [[ \r \N \b \q \k \b \n \r ]
+         [ \. \. \. \p \. \p \p \p ]
+         [ \p \. \p \. \p \. \. \. ]
+         [ \. \p \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \P \. ]
+         [ \. \. \. \. \. \P \. \N ]
+         [ \P \P \P \P \P \. \B \P ]
+         [ \R \N \B \Q \K \. \. \R ]]
         board'
-        [[ "BR"  "WN"  "BB"  "BQ"  "BK"  "BB"  "BN"  "BR" ]
-         [ "  "  "  "  "  "  "BP"  "  "  "BP"  "BP"  "BP" ]
-         [ "BP"  "  "  "BP"  "  "  "BP"  "  "  "  "  "  " ]
-         [ "  "  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "WN" ]
-         [ "WP"  "WP"  "WP"  "WP"  "WP"  "  "  "WB"  "WP" ]
-         [ "WR"  "WN"  "WB"  "WQ"  "  "  "WR"  "WK"  "  " ]]
+        [[ \r \N \b \q \k \b \n \r ]
+         [ \. \. \. \p \. \p \p \p ]
+         [ \p \. \p \. \p \. \. \. ]
+         [ \. \p \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \P \. ]
+         [ \. \. \. \. \. \P \. \N ]
+         [ \P \P \P \P \P \. \B \P ]
+         [ \R \N \B \Q \. \R \K \. ]]
         white-castling-kingside ["e1" "g1"]
-        game-state {:board board :turn \W :last-move ["a7" "a6"] :moves-cnt 0
+        game-state {:board board :turn \W :last-move ["a7" "a6" \p] :moves-cnt 0
                     :white-can-castle-ks true}]
     (fact "Engine considers white castling kingside"
       (find-available-moves game-state) =>
@@ -175,25 +175,25 @@
       (:board (move game-state white-castling-kingside)) => board'))
 
   (let [board
-        [[ "BR"  "  "  "  "  "  "  "BK"  "BB"  "BN"  "BR" ]
-         [ "BP"  "BP"  "BQ"  "BB"  "BP"  "BP"  "BP"  "BP" ]
-         [ "WN"  "  "  "BP"  "BP"  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
-         [ "  "  "  "  "WP"  "  "  "  "  "WP"  "  "  "  " ]
-         [ "WP"  "WP"  "WQ"  "WP"  "WP"  "  "  "  "  "WP" ]
-         [ "WR"  "WN"  "WB"  "  "  "WK"  "WB"  "WN"  "WR" ]]
+        [[ \r \. \. \. \k \b \n \r ]
+         [ \p \p \q \b \p \p \p \p ]
+         [ \N \. \p \p \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \P \. ]
+         [ \. \. \P \. \. \P \. \. ]
+         [ \P \P \Q \P \P \. \. \P ]
+         [ \R \N \B \. \K \B \N \R ]]
         board'
-        [[ "  "  "  "  "BK"  "BR"  "  "  "BB"  "BN"  "BR" ]
-         [ "BP"  "BP"  "BQ"  "BB"  "BP"  "BP"  "BP"  "BP" ]
-         [ "WN"  "  "  "BP"  "BP"  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
-         [ "  "  "  "  "WP"  "  "  "  "  "WP"  "  "  "  " ]
-         [ "WP"  "WP"  "WQ"  "WP"  "WP"  "  "  "  "  "WP" ]
-         [ "WR"  "WN"  "WB"  "  "  "WK"  "WB"  "WN"  "WR" ]]
+        [[ \. \. \k \r \. \b \n \r ]
+         [ \p \p \q \b \p \p \p \p ]
+         [ \N \. \p \p \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \P \. ]
+         [ \. \. \P \. \. \P \. \. ]
+         [ \P \P \Q \P \P \. \. \P ]
+         [ \R \N \B \. \K \B \N \R ]]
         black-castling-queenside ["e8" "c8"]
-        game-state {:board board :turn \B :last-move ["b3" "c2"] :moves-cnt 0
+        game-state {:board board :turn \B :last-move ["b3" "c2" \Q] :moves-cnt 0
                     :black-can-castle-qs true}]
     (fact "Engine considers black castling queenside"
       (find-available-moves game-state) =>
@@ -202,25 +202,25 @@
       (:board (move game-state black-castling-queenside)) => board'))
 
   (let [board
-        [[ "BR"  "WN"  "BB"  "BQ"  "BK"  "  "  "  "  "BR" ]
-         [ "BP"  "BP"  "  "  "BP"  "BB"  "BP"  "BP"  "BP" ]
-         [ "  "  "  "  "BP"  "  "  "BP"  "BN"  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
-         [ "  "  "  "  "WP"  "  "  "  "  "WP"  "  "  "  " ]
-         [ "WP"  "WP"  "WQ"  "WP"  "WP"  "  "  "  "  "WP" ]
-         [ "WR"  "WN"  "WB"  "  "  "WK"  "WB"  "WN"  "WR" ]]
+        [[ \r \N \b \q \k \. \. \r ]
+         [ \p \p \. \p \b \p \p \p ]
+         [ \. \. \p \. \p \n \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \P \. ]
+         [ \. \. \P \. \. \P \. \. ]
+         [ \P \P \Q \P \P \. \. \P ]
+         [ \R \N \B \. \K \B \N \R ]]
         board'
-        [[ "BR"  "WN"  "BB"  "BQ"  "  "  "BR"  "BK"  "  " ]
-         [ "BP"  "BP"  "  "  "BP"  "BB"  "BP"  "BP"  "BP" ]
-         [ "  "  "  "  "BP"  "  "  "BP"  "BN"  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "WP"  "  " ]
-         [ "  "  "  "  "WP"  "  "  "  "  "WP"  "  "  "  " ]
-         [ "WP"  "WP"  "WQ"  "WP"  "WP"  "  "  "  "  "WP" ]
-         [ "WR"  "WN"  "WB"  "  "  "WK"  "WB"  "WN"  "WR" ]]
+        [[ \r \N \b \q \. \r \k \. ]
+         [ \p \p \. \p \b \p \p \p ]
+         [ \. \. \p \. \p \n \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \P \. ]
+         [ \. \. \P \. \. \P \. \. ]
+         [ \P \P \Q \P \P \. \. \P ]
+         [ \R \N \B \. \K \B \N \R ]]
         black-castling-kingside ["e8" "g8"]
-        game-state {:board board :turn \B :last-move ["b3" "c2"] :moves-cnt 0
+        game-state {:board board :turn \B :last-move ["b3" "c2" \Q] :moves-cnt 0
                     :black-can-castle-ks true}]
     (fact "Engine considers black castling kingside"
       (find-available-moves game-state) => (contains [black-castling-kingside]))
@@ -229,76 +229,77 @@
 
 (facts "about pawn promotion"
   (let [board
-        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "BP"  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "BP"  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "WK"  "  "  "  "  "  " ]]
+        [[ \. \. \. \. \k \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \P \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \p \. \. \. ]
+         [ \. \. \. \. \. \P \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \p \. \. \. \. \. \. ]
+         [ \. \. \. \. \K \. \. \. ]]
         board'
-        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "BP"  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "WP"  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "BQ"  "  "  "  "  "WK"  "  "  "  "  "  " ]]
+        [[ \. \. \. \. \k \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \P \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \p \. \. \. ]
+         [ \. \. \. \. \. \P \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \q \. \. \K \. \. \. ]]
         promotion-move ["b2" "b1Q"]
-        game-state {:board board :turn \B :last-move ["a5" "a6"] :moves-cnt 0}]
+        game-state {:board board :turn \B :last-move ["a5" "a6" \P] :moves-cnt 0}]
     (fact "Engine promotes pawns to queens"
       (choose-best-move game-state) => promotion-move)
     (fact "Engine understands the result of pawn promotion to queen"
       (:board (move game-state promotion-move)) => board'))
 
   (let [board
-        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "BR" ]
-         [ "WK"  "WP"  "BP"  "  "  "  "  "  "  "  "  "  " ]
-         [ "WR"  "WN"  "  "  "  "  "  "  "  "  "  "  "  " ]]
+        [[ \. \. \. \. \k \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \P \. \. \. \. \. \. \r ]
+         [ \K \P \p \. \. \. \. \. ]
+         [ \R \N \. \. \. \. \. \. ]]
         board'
-        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "BR" ]
-         [ "WK"  "WP"  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "WR"  "WN"  "BN"  "  "  "  "  "  "  "  "  "  " ]]
+        [[ \. \. \. \. \k \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \P \. \. \. \. \. \. \r ]
+         [ \K \P \. \. \. \. \. \. ]
+         [ \R \N \n \. \. \. \. \. ]]
         promotion-move ["c2" "c1N"]
-        game-state {:board board :turn \B :last-move ["b3" "a2"] :moves-cnt 0}]
+        game-state {:board board :turn \B :last-move ["b3" "a2" \K] :moves-cnt 0}]
     (fact "Engine promotes pawns to knights"
       (choose-best-move game-state) => promotion-move)
     (fact "Engine understands the result of pawn promotion to knight"
       (:board (move game-state promotion-move)) => board')))
 
+
 (facts "about basic moves"
   (let [board
-        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "BP" ]
-         [ "WK"  "WP"  "  "  "  "  "  "  "  "  "WP"  "WP" ]
-         [ "WR"  "WN"  "  "  "  "  "  "  "  "  "  "  "  " ]]
+        [[ \. \. \. \. \k \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \P \. \. \. \. \. \. \p ]
+         [ \K \P \. \. \. \. \P \P ]
+         [ \R \N \. \. \. \. \. \. ]]
         board'
-        [[ "  "  "  "  "  "  "  "  "BK"  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "  "  "  "  "  "  "  "  "  "  "  "  "  "  "  " ]
-         [ "WP"  "  "  "  "  "  "  "  "  "  "  "  "  "WP" ]
-         [ "WK"  "WP"  "  "  "  "  "  "  "  "  "  "  "WP" ]
-         [ "WR"  "WN"  "  "  "  "  "  "  "  "  "  "  "  " ]]
+        [[ \. \. \. \. \k \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \. \. \. \. \. \. \. \. ]
+         [ \P \. \. \. \. \. \. \P ]
+         [ \K \P \. \. \. \. \. \P ]
+         [ \R \N \. \. \. \. \. \. ]]
         regular-pawn-attack ["g2" "h3"]
-        game-state {:board board :turn \W :last-move ["h4" "h3"] :moves-cnt 0}]
+        game-state {:board board :turn \W :last-move ["h4" "h3" \p] :moves-cnt 0}]
     (fact "Engine chooses to attack with pawn"
       (choose-best-move game-state) => regular-pawn-attack)
     (fact "Engine understands the result of pawn attack"
