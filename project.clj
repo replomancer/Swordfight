@@ -5,5 +5,5 @@
   :license {:name "2-clause BSD"
             :url ""}
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]]
-  :profiles {:dev {:dependencies [[midje "1.9.0-alpha3"]]
+  :profiles {:dev {:dependencies [[midje "1.9.0-alpha6"]]
                    :plugins [[lein-midje "3.2"]]}})
