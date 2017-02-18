@@ -1,25 +1,20 @@
 (ns swordfight.board
   (:use [clojure.set :only [map-invert]]))
 
-
-(def initial-board
-  [[ \r \n \b \q \k \b \n \r ]
-   [ \p \p \p \p \p \p \p \p ]
-   [ \. \. \. \. \. \. \. \. ]
-   [ \. \. \. \. \. \. \. \. ]
-   [ \. \. \. \. \. \. \. \. ]
-   [ \. \. \. \. \. \. \. \. ]
-   [ \P \P \P \P \P \P \P \P ]
-   [ \R \N \B \Q \K \B \N \R ]])
-
+(def initial-board [[\r \n \b \q \k \b \n \r]
+                    [\p \p \p \p \p \p \p \p]
+                    [\. \. \. \. \. \. \. \.]
+                    [\. \. \. \. \. \. \. \.]
+                    [\. \. \. \. \. \. \. \.]
+                    [\. \. \. \. \. \. \. \.]
+                    [\P \P \P \P \P \P \P \P]
+                    [\R \N \B \Q \K \B \N \R]])
 
 (def empty-square \.)
 (def empty-square? (partial = empty-square))
 
-
 (def empty-board
   (vec (repeat 8 (vec (repeat 8 empty-square)))))
-
 
 (def notation->coords
   {"a8" [0 0] "b8" [0 1] "c8" [0 2] "d8" [0 3] "e8" [0 4] "f8" [0 5] "g8" [0 6] "h8" [0 7]
@@ -33,19 +28,15 @@
 
 (def coords->notation (map-invert notation->coords))
 
-
 (defn piece-type [piece]
   (if piece
     (Character/toUpperCase piece)))
 
-
 (def white? #{\R \N \B \Q \K \P})
 (def black? #{\r \n \b \q \k \p})
 
-
 (defn color [piece] (cond (white? piece) \W
                           (black? piece) \B))
-
 
 (defn same-color? [piece piece']
   (= (color piece) (color piece')))
@@ -57,32 +48,26 @@
     (or (= colors [\B \W])
         (= colors [\W \B]))))
 
-
 (def change-side {\B \W
                   \W \B})
-
 
 (defn on-board? [[y x]]
   (when (and (<= 0 y 7) (<= 0 x 7))
     [y x]))
-
 
 (defn remove-piece [board position]
   (let [yx (notation->coords position)
         piece (get-in board yx)]
     [(assoc-in board yx empty-square) piece]))
 
-
 (defn put-piece [board position piece]
   (let [yx (notation->coords position)]
     (assoc-in board yx piece)))
-
 
 (defn move-piece-on-board [board [from-pos to-pos]]
   (let [[board' piece] (remove-piece board from-pos)
         to-pos' (subs to-pos 0 2)]  ;; ignore promotions, just move
     [(put-piece board' to-pos' piece) piece]))
-
 
 (defn promote [board promotion-notation]
   (let [position (subs promotion-notation 0 2)

@@ -4,22 +4,18 @@
         [swordfight.debug :only [print-debug-output]]
         [swordfight.game-rules :only [initial-game-state]]))
 
-
 (def initial-settings {:xboard-mode false
                        :debug-mode true
                        :edition-current-color \W})
-
 
 (defn receive-command []
   (-> (read-line)
       (.toLowerCase)
       (clojure.string/split #" ")))
 
-
 (defn send-command [[game-state game-settings cmd]]
   (println cmd)
   [game-state game-settings])
-
 
 (defn -main
   [& args]

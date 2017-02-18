@@ -6,4 +6,4 @@
             :url ""}
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]]
   :profiles {:dev {:dependencies [[midje "1.9.0-alpha6"]]
-                   :plugins [[lein-midje "3.2"]]}})
+                   :plugins [[lein-midje "3.2"] [lein-cljfmt "0.5.6"]]}})

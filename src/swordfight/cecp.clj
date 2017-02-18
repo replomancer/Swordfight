@@ -6,22 +6,18 @@
         [swordfight.ai :only [mexican-defense]]
         [swordfight.debug :only [show-game-state]]))
 
-
 (def cecp-msg-finished "Finished.")
 (defn cecp-msg-illegal [mv] (str "Illegal move:" mv))
 (def cecp-msg-ok "")
 (defn cmd-ignored-msg [cmd] (str "#\n#    COMMAND IGNORED: " cmd "\n#"))
-
 
 (defn xboard [game-state game-settings _]
   [game-state
    (update game-settings :xboard-mode not)
    cecp-msg-ok])
 
-
 (defn quit [game-state game-settings _]
   [(assoc game-state :quitting true) game-settings cecp-msg-finished])
-
 
 (defn make-move [game-state game-settings cmd-vector]
   (let [algebraic-notation (first cmd-vector)
@@ -29,7 +25,7 @@
         pos2 (subs algebraic-notation 2)
         [game-state' output-str] (if (some #{pos2}
                                            (possible-moves-from-square game-state
-                                                                        pos1))
+                                                                       pos1))
                                    [(move game-state [pos1 pos2]) cecp-msg-ok]
                                    [game-state
                                     (cecp-msg-illegal algebraic-notation)])]
@@ -37,10 +33,8 @@
       (show-game-state game-state'))
     [game-state' game-settings output-str]))
 
-
 (defn edit [game-state game-settings cmd-vector]
   [(assoc game-state :edit-mode true :edited true) game-settings cecp-msg-ok])
-
 
 (defn eval-edit-command [game-state game-settings cmd-vector]
   (let [cmd (first cmd-vector)]
@@ -68,7 +62,6 @@
 
 (defn ignore [game-state game-settings cmd-vector]
   [game-state game-settings (cmd-ignored-msg cmd-vector)])
-
 
 (defn eval-command [game-state game-settings cmd-vector]
   (let [cmd (get cmd-vector 0)
