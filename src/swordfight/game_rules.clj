@@ -1,6 +1,10 @@
 (ns swordfight.game-rules
-  (:use [clojure.set :only [map-invert]]
-        [swordfight.board]))
+  (:require  [clojure.set :refer [map-invert]]
+             [swordfight.board :refer
+              [initial-board all-coords empty-square?
+               piece-type color notation->coords coords->notation
+               change-side on-board? opposite-color? black?
+               move-piece remove-piece promote-pawn]]))
 
 (def initial-game-state {:board initial-board
                          :turn \W
@@ -12,7 +16,7 @@
                          :black-can-castle-qs true
                          ;; the last move is: [first-pos second-pos current-piece-on-second-pos]
                          ;; current-piece-on-second-pos can be a queen just promoted from pawn
-                         :last-move ["  " "  " nil]})
+                         :last-move ["  " "  " \k]})
 
 (def dir-up [-1 0])
 (def dir-down [+1 0])
@@ -32,11 +36,11 @@
 (defmulti legal-destination-indexes
   (fn [game-state square-coords piece] (piece-type piece)))
 
-(defn possible-moves-from-square [game-state from-square]
+(defn possible-moves-from-square [{:keys [board turn] :as game-state} from-square]
   (let [from-coords (notation->coords from-square)
-        piece (get-in (:board game-state) from-coords)
+        piece (get-in board from-coords)
         [piece-color piece-type] [(color piece) (piece-type piece)]]
-    (if (not= piece-color (:turn game-state))  ;; this check also covers empty squares
+    (if (not= piece-color turn)  ;; this check also covers empty squares
       []
       (mapcat
        (fn [[dest-y dest-x]] (let [dest-notation (coords->notation [dest-y dest-x])]
@@ -52,12 +56,12 @@
        (legal-destination-indexes game-state from-coords piece)))))
 
 (defn find-available-moves [game-state]
-  (mapcat (fn [[coords]]
+  (mapcat (fn [coords]
             (let [pos-from (coords->notation coords)]
               (for [pos-to (possible-moves-from-square game-state
                                                        pos-from)]
                 [pos-from pos-to])))
-          (for [y (range 8) x (range 8)] [[y x]])))
+          all-coords))
 
 (defn squares-attacked-by-opponent [game-state]
   (map second (find-available-moves
@@ -72,14 +76,14 @@
     [take-while-part (first remaining)]))
 
 (defn squares-to-go-in-dir [board piece pos dir]
-  (let [positions-on-board-in-dir (take-while on-board? (iterate (partial map + dir)
+  (let [positions-on-board-in-dir (take-while on-board? (iterate #(map + dir %)
                                                                  (map + pos dir)))
         [empty-positions-in-dir first-non-empty-position]
         (take-while-and-next-one #(empty-square? (get-in board %))
                                  positions-on-board-in-dir)
         blocking-piece (if first-non-empty-position
                          (get-in board first-non-empty-position))]
-    (if (opposite-color? piece blocking-piece)
+    (if (and blocking-piece (opposite-color? piece blocking-piece))
       (concat empty-positions-in-dir [first-non-empty-position]) ;; attacking move
       empty-positions-in-dir)))
 
@@ -96,15 +100,16 @@
   (squares-to-go-in-directions board piece pos bishop-directions))
 
 (defmethod legal-destination-indexes \N [{board :board} pos piece]
-  (filter (fn [[y x]] (let [square-piece (get-in board [y x])]
-                        (or (empty-square? square-piece)
-                            (opposite-color? piece square-piece))))
-          (map (partial map + pos) knight-moves)))
+  (filter (fn [yx] (let [square-piece (get-in board yx)]
+                     (or (empty-square? square-piece)
+                         (opposite-color? piece square-piece))))
+          (map #(map + pos %) knight-moves)))
 
 (defmethod legal-destination-indexes \P [{:keys [board last-move]} [square-y square-x] piece]
-  (let [[forward-direction starting-row en-passant-row promotion-row] (if (black? piece)
-                                                                        [+1 1 4 7]
-                                                                        [-1 6 3 0])
+  (let [[forward-direction starting-row en-passant-row promotion-row]
+        (if (black? piece)
+          [+1 1 4 7]
+          [-1 6 3 0])
         [notation-from notation-to last-moved-piece] last-move
         [last-move-from last-move-to] (map notation->coords [notation-from notation-to])
         forward-y (+ square-y forward-direction)
@@ -115,25 +120,25 @@
         forward-left-square (get-in board [forward-y left-x])
         forward-right-square (get-in board [forward-y right-x])
         jump-forward-square (get-in board [jump-forward-y square-x])]
-    (concat
-     (when (empty-square? forward-square)
-       [[forward-y square-x]])
-     (when (and (= square-y starting-row)
-                (empty-square? forward-square)
-                (empty-square? jump-forward-square))
-       [[jump-forward-y square-x]])
-     (when (opposite-color? piece forward-left-square)
-       [[forward-y left-x]])
-     (when (opposite-color? piece forward-right-square)
-       [[forward-y right-x]])
-     (when (and (= square-y en-passant-row)
-                (= (piece-type last-moved-piece) \P))
-       (cond (= [last-move-from last-move-to]
-                [[jump-forward-y left-x] [square-y left-x]])
-             [[forward-y left-x]]
-             (= [last-move-from last-move-to]
-                [[jump-forward-y right-x] [square-y right-x]])
-             [[forward-y right-x]])))))
+    (remove nil?
+            [(when (empty-square? forward-square)
+               [forward-y square-x])
+             (when (and (= square-y starting-row)
+                        (empty-square? forward-square)
+                        (empty-square? jump-forward-square))
+               [jump-forward-y square-x])
+             (when (opposite-color? piece forward-left-square)
+               [forward-y left-x])
+             (when (opposite-color? piece forward-right-square)
+               [forward-y right-x])
+             (when (and (= square-y en-passant-row)
+                        (= (piece-type last-moved-piece) \P))
+               (cond (= [last-move-from last-move-to]
+                        [[jump-forward-y left-x] [square-y left-x]])
+                     [forward-y left-x]
+                     (= [last-move-from last-move-to]
+                        [[jump-forward-y right-x] [square-y right-x]])
+                     [forward-y right-x]))])))
 
 (defmethod legal-destination-indexes \K [{:keys [board turn] :as game-state} square-coords piece]
   (let [[can-castle-ks can-castle-qs ks-squares qs-squares]
@@ -150,7 +155,7 @@
      (filter (fn [pos] (let [square-piece (get-in board pos)]
                          (or (empty-square? square-piece)
                              (opposite-color? piece square-piece))))
-             (map (partial map + square-coords) king-basic-moves))
+             (map #(map + square-coords %) king-basic-moves))
      (for [[castling-condition [middle-squares must-be-safe-squares]]
            [[can-castle-ks ks-squares]
             [can-castle-qs qs-squares]]
@@ -175,46 +180,43 @@
       game-state)))
 
 (defn possibly-extra-board-change [game-state new-board piece piece-move]
-  (cond (= (piece-type piece) \K)
-        ;; extra tower moves when castling:
-        (cond (= piece-move ["e1" "c1"])  ;; white castling queenside
-              (move-piece-on-board new-board ["a1" "d1"])
+  (cond
+    (= (piece-type piece) \K)
+    ;; extra tower moves when castling:
+    (let [extra-tower-move
+          (cond ;; white queenside, white kingside, black queenside, black kingside
+            (= piece-move ["e1" "c1"]) ["a1" "d1"]
+            (= piece-move ["e1" "g1"]) ["h1" "f1"]
+            (= piece-move ["e8" "c8"]) ["a8" "d8"]
+            (= piece-move ["e8" "g8"]) ["h8" "f8"])]
+      (if extra-tower-move
+        (move-piece new-board extra-tower-move)
+        [new-board piece]))
 
-              (= piece-move ["e1" "g1"]) ;; white castling kingside
-              (move-piece-on-board new-board ["h1" "f1"])
+    (= (piece-type piece) \P)
+    (let [[_ to-pos] piece-move
+          pawn-promotion (> (.length to-pos) 2)]
+      (if pawn-promotion
+        (promote-pawn new-board to-pos)
+        ;; en passant moves require removing pawns:
+        (let [[[from-y _] [_ to-x]] (map notation->coords piece-move)
+              [last-m-from last-m-to last-moved-piece] (:last-move game-state)
+              [[last-m-from-y _] [last-m-to-y last-m-to-x]]
+              (map notation->coords [last-m-from last-m-to])]
+          ;; We assume here the moves being made are legal:
+          (if (and (= (piece-type last-moved-piece) \P)
+                   (= (Math/abs (- last-m-from-y last-m-to-y)) 2)
+                   (= last-m-to-y from-y)
+                   (= last-m-to-x to-x))
+            [(first (remove-piece new-board last-m-to)) piece]
+            [new-board piece]))))
 
-              (= piece-move ["e8" "c8"])  ;; black castling queenside
-              (move-piece-on-board new-board ["a8" "d8"])
-
-              (= piece-move ["e8" "g8"]) ;; black castling kingside
-              (move-piece-on-board new-board ["h8" "f8"])
-
-              :else [new-board piece])
-
-        (= (piece-type piece) \P)
-        (let [[from-pos to-pos] piece-move
-              pawn-promotion (> (.length to-pos) 2)]
-          (if pawn-promotion
-            (promote new-board to-pos)
-            ;; en passant moves require removing pawns:
-            (let [[[from-y from-x] [to-y to-x]] (map notation->coords piece-move)
-                  [last-m-from last-m-to last-moved-piece] (:last-move game-state)
-                  [[last-m-from-y last-m-from-x]
-                   [last-m-to-y last-m-to-x]] (map notation->coords [last-m-from last-m-to])]
-              ;; We assume here the moves being made are legal:
-              (if (and (= (piece-type last-moved-piece) \P)
-                       (= (Math/abs (- last-m-from-y last-m-to-y)) 2)
-                       (= last-m-to-y from-y)
-                       (= last-m-to-x to-x))
-                [(first (remove-piece new-board last-m-to)) piece]
-                [new-board piece]))))
-
-        :else [new-board piece]))
+    :else [new-board piece]))
 
 (defn move [game-state [from-pos to-pos]]
   ;; This function always assumes the move is legal
   (let [[new-board new-piece]
-        (let [[board' piece] (move-piece-on-board
+        (let [[board' piece] (move-piece
                               (:board game-state) [from-pos to-pos])
               ;; special cases where extra pieces need to be moved or removed
               [board'' piece'] (possibly-extra-board-change game-state board' piece [from-pos to-pos])]

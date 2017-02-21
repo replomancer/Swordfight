@@ -1,14 +1,12 @@
 (ns swordfight.ai
-  (:use [swordfight.game-rules :only [move find-available-moves]]))
+  (:require [swordfight.game-rules :refer [move find-available-moves]]))
 
 (defn eval-board [board]
   ;; TODO: Currently it only cares about material
   (reduce + (map {\k  20000 \q  900 \r  500 \b  300 \n  300 \p  100
                   \K -20000 \Q -900 \R -500 \B -300 \N -300 \P -100
                   \. 0}
-                 (for [y (range 8)
-                       x (range 8)]
-                   (get-in board [y x])))))
+                 (flatten board))))
 
 (def minimax-depth 3)
 
