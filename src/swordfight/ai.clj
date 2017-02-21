@@ -10,18 +10,18 @@
                   \. 0}
                  (flatten board))))
 
-(def minimax-depth 3)
+(def minimax-depth 4)
 
 (defn choose-best-move-at-depth [game-state depth]
   (let [available-moves (find-available-moves game-state)
         mapping-fn ;; simple parallelization only for bigger cases
-        (if (> depth 1) pmap map)]
+        (if (> depth 2) pmap map)]
     (apply (if (= (:turn game-state) \B) max-key min-key)
            second ;; board evaluation is second in the pair
            (mapping-fn
             (fn [piece-move]
               (let [state-after-move (move game-state piece-move)
-                    board-value (if-not (pos? depth)
+                    board-value (if (= depth 1)
                                   (eval-board (:board state-after-move))
                                   (second (choose-best-move-at-depth
                                            state-after-move
@@ -33,17 +33,13 @@
   (let [[best-mv _] (choose-best-move-at-depth game-state minimax-depth)]
     best-mv))
 
-(defn mexican-defense [game-state game-settings msg]
-  (let [first-moves [[nil nil] ["b8" "c6"] [nil nil] ["g8" "f6"]]
+(def mexican-defense [[nil nil] ["b8" "c6"] [nil nil] ["g8" "f6"]])
+
+(defn compute-move [game-state]
+  (let [opening-moves mexican-defense
         moves-cnt (:moves-cnt game-state)
-        [square-from square-to] (if (and (< moves-cnt (count first-moves))
+        [square-from square-to] (if (and (< moves-cnt (count opening-moves))
                                          (false? (:edited game-state)))
-                                  (first-moves moves-cnt)
+                                  (opening-moves moves-cnt)
                                   (choose-best-move game-state))]
-    (if (= (:turn game-state) \B)
-      [(move game-state [square-from square-to])
-       game-settings
-       (str "move " square-from square-to)]
-      [game-state
-       game-settings
-       msg])))
+    [square-from square-to]))
