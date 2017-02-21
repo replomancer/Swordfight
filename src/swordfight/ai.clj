@@ -1,5 +1,7 @@
 (ns swordfight.ai
-  (:require [swordfight.game-rules :refer [move find-available-moves]]))
+  (:require [swordfight.game-rules :refer [move find-available-moves]]
+            [taoensso.tufte :refer [defnp p profiled profile]]
+            [swordfight.profiling]))
 
 (defn eval-board [board]
   ;; TODO: Currently it only cares about material

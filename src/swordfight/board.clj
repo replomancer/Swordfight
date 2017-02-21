@@ -1,5 +1,6 @@
 (ns swordfight.board
-  (:use [clojure.set :only [map-invert]]))
+  (:require [clojure.set :refer [map-invert]]
+            [taoensso.tufte :as tufte :refer [defnp p profiled profile]]))
 
 (def initial-board [[\r \n \b \q \k \b \n \r]
                     [\p \p \p \p \p \p \p \p]
