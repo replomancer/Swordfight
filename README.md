@@ -22,9 +22,7 @@ works with XBoard GUI.
    and set `lein run` as command. This will make Swordfight play as black.
 5. Play.
 
-Swordfight plays a Mexican Defense (a.k.a. Kevitz–Trajkovic Defense a.k.a. Black Knights' Tango)
-and after your third move it starts using minimax algorithm with a very simple evaluation function.
-If you run `xboard -debug` there will be some debugging info in the `xboard.debug` file.
+Swordfight currently uses paralelized minimax algorithm with a very simple evaluation function. If you run `xboard -debug` there will be some debugging info in the `xboard.debug` file.
 
 ![XBoard window](https://raw.githubusercontent.com/evalapply/Swordfight/master/doc/mexican_defense.png)
 
