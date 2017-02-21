@@ -63,13 +63,23 @@
                 [pos-from pos-to])))
           all-coords))
 
-(defn squares-attacked-by-opponent [game-state]
+(defn squares-attacked-by [game-state attacker]
   (map second (find-available-moves
-               (assoc (update game-state :turn change-side)
+               (assoc game-state
+                      :turn attacker
                       :white-can-castle-ks false
                       :white-can-castle-qs false
                       :black-can-castle-ks false
                       :black-can-castle-qs false))))
+
+(defn squares-attacked-by-opponent [{turn :turn :as game-state}]
+  (squares-attacked-by game-state (change-side turn)))
+
+(defn pieces-attacked-by-opponent [{:keys [turn board] :as game-state}]
+  (filter (fn [sq] (= (color
+                       (get-in board (notation->coords sq)))
+                      turn))
+          (squares-attacked-by-opponent game-state)))
 
 (defn take-while-and-next-one [pred coll]
   (let [[take-while-part remaining] (split-with pred coll)]

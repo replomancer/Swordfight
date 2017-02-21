@@ -3,7 +3,7 @@
         [swordfight.core :only [initial-settings]]
         [swordfight.game-rules :only [initial-game-state move
                                       find-available-moves]]
-        [swordfight.ai :only [choose-best-move]]))
+        [swordfight.ai :only [compute-midgame-move]]))
 
 
 (defn legal-moves-cnt-in-turn
@@ -98,7 +98,7 @@
         en-passant-move ["b4" "a3"]
         game-state {:board board :turn \B :last-move ["a2" "a4" \P] :moves-cnt 0}]
     (fact "Engine makes en passant moves in an obvious scenario"
-      (choose-best-move game-state) => en-passant-move))
+      (compute-midgame-move game-state) => en-passant-move))
 
 
   (let [board
@@ -115,7 +115,7 @@
     (fact "Engine checks the last move for en passant"
       (find-available-moves game-state) =not=> (contains [en-passant-move]))
     (fact "Engine makes an obvious best move when en passant not possible"
-      (choose-best-move game-state) => ["b4" "b3"])))
+      (compute-midgame-move game-state) => ["b4" "b3"])))
 
 
 (facts "about castling"
@@ -193,7 +193,7 @@
          [ \P \P \Q \P \P \. \. \P ]
          [ \R \N \B \. \K \B \N \R ]]
         black-castling-queenside ["e8" "c8"]
-        game-state {:board board :turn \B :last-move ["b3" "c2" \Q] :moves-cnt 0
+        game-state {:board board :turn \B :last-move ["b3" "c2" \Q] :moves-cnt 10
                     :black-can-castle-qs true}]
     (fact "Engine considers black castling queenside"
       (find-available-moves game-state) =>
@@ -220,7 +220,7 @@
          [ \P \P \Q \P \P \. \. \P ]
          [ \R \N \B \. \K \B \N \R ]]
         black-castling-kingside ["e8" "g8"]
-        game-state {:board board :turn \B :last-move ["b3" "c2" \Q] :moves-cnt 0
+        game-state {:board board :turn \B :last-move ["b3" "c2" \Q] :moves-cnt 10
                     :black-can-castle-ks true}]
     (fact "Engine considers black castling kingside"
       (find-available-moves game-state) => (contains [black-castling-kingside]))
@@ -247,9 +247,9 @@
          [ \. \. \. \. \. \. \. \. ]
          [ \. \q \. \. \K \. \. \. ]]
         promotion-move ["b2" "b1Q"]
-        game-state {:board board :turn \B :last-move ["a5" "a6" \P] :moves-cnt 0}]
+        game-state {:board board :turn \B :last-move ["a5" "a6" \P] :moves-cnt 10}]
     (fact "Engine promotes pawns to queens"
-      (choose-best-move game-state) => promotion-move)
+      (compute-midgame-move game-state) => promotion-move)
     (fact "Engine understands the result of pawn promotion to queen"
       (:board (move game-state promotion-move)) => board'))
 
@@ -272,9 +272,9 @@
          [ \K \P \. \. \. \. \. \. ]
          [ \R \N \n \. \. \. \. \. ]]
         promotion-move ["c2" "c1N"]
-        game-state {:board board :turn \B :last-move ["b3" "a2" \K] :moves-cnt 0}]
+        game-state {:board board :turn \B :last-move ["b3" "a2" \K] :moves-cnt 10}]
     (fact "Engine promotes pawns to knights"
-      (choose-best-move game-state) => promotion-move)
+      (compute-midgame-move game-state) => promotion-move)
     (fact "Engine understands the result of pawn promotion to knight"
       (:board (move game-state promotion-move)) => board')))
 
@@ -299,8 +299,8 @@
          [ \K \P \. \. \. \. \. \P ]
          [ \R \N \. \. \. \. \. \. ]]
         regular-pawn-attack ["g2" "h3"]
-        game-state {:board board :turn \W :last-move ["h4" "h3" \p] :moves-cnt 0}]
+        game-state {:board board :turn \W :last-move ["h4" "h3" \p] :moves-cnt 10}]
     (fact "Engine chooses to attack with pawn"
-      (choose-best-move game-state) => regular-pawn-attack)
+      (compute-midgame-move game-state) => regular-pawn-attack)
     (fact "Engine understands the result of pawn attack"
       (:board (move game-state regular-pawn-attack)) => board')))
