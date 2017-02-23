@@ -1,8 +1,8 @@
 (ns swordfight.core
   (:gen-class)
-  (:use [swordfight.cecp :only [eval-command]]
-        [swordfight.debug :only [print-debug-output]]
-        [swordfight.game-rules :only [initial-game-state]]))
+  (:require [swordfight.cecp :refer [eval-command]]
+            [swordfight.debug :refer [print-debug-output]]
+            [swordfight.game-rules :refer [initial-game-state]]))
 
 (def initial-settings {:xboard-mode false
                        :debug-mode true
