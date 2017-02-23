@@ -55,6 +55,9 @@
 (defn on-board? [[y x]]
   (and (<= 0 y 7) (<= 0 x 7)))
 
+(defn get-piece [board position]
+  (get-in board (notation->coords position)))
+
 (defn remove-piece [board position]
   (let [yx (notation->coords position)
         piece (get-in board yx)]

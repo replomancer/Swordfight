@@ -4,7 +4,7 @@
               [initial-board all-coords empty-square?
                piece-type color notation->coords coords->notation
                change-side on-board? opposite-color? black?
-               move-piece remove-piece promote-pawn]]))
+               get-piece move-piece remove-piece promote-pawn]]))
 
 (def initial-game-state {:board initial-board
                          :turn \W
@@ -33,7 +33,7 @@
                    [-2 +1] [-1 +2] [+1 +2] [+2 +1]])
 (def king-basic-moves all-directions)
 
-(defmulti legal-destination-indexes
+(defmulti pseudolegal-destination-indexes
   (fn [game-state square-coords piece] (piece-type piece)))
 
 (defn possible-moves-from-square [{:keys [board turn] :as game-state} from-square]
@@ -53,9 +53,9 @@
                                   (str dest-notation "N")]
                                  ;; default case:
                                  [dest-notation])))
-       (legal-destination-indexes game-state from-coords piece)))))
+       (pseudolegal-destination-indexes game-state from-coords piece)))))
 
-(defn find-available-moves [game-state]
+(defn find-pseudolegal-moves [game-state]
   (mapcat (fn [coords]
             (let [pos-from (coords->notation coords)]
               (for [pos-to (possible-moves-from-square game-state
@@ -64,7 +64,7 @@
           all-coords))
 
 (defn squares-attacked-by [game-state attacker]
-  (map second (find-available-moves
+  (map second (find-pseudolegal-moves
                (assoc game-state
                       :turn attacker
                       :white-can-castle-ks false
@@ -100,22 +100,22 @@
 (defn squares-to-go-in-directions [board piece pos dirs]
   (mapcat (partial squares-to-go-in-dir board piece pos) dirs))
 
-(defmethod legal-destination-indexes \Q [{board :board} pos piece]
+(defmethod pseudolegal-destination-indexes \Q [{board :board} pos piece]
   (squares-to-go-in-directions board piece pos all-directions))
 
-(defmethod legal-destination-indexes \R [{board :board} pos piece]
+(defmethod pseudolegal-destination-indexes \R [{board :board} pos piece]
   (squares-to-go-in-directions board piece pos rook-directions))
 
-(defmethod legal-destination-indexes \B [{board :board} pos piece]
+(defmethod pseudolegal-destination-indexes \B [{board :board} pos piece]
   (squares-to-go-in-directions board piece pos bishop-directions))
 
-(defmethod legal-destination-indexes \N [{board :board} pos piece]
+(defmethod pseudolegal-destination-indexes \N [{board :board} pos piece]
   (filter (fn [yx] (let [square-piece (get-in board yx)]
                      (or (empty-square? square-piece)
                          (opposite-color? piece square-piece))))
           (map #(map + pos %) knight-moves)))
 
-(defmethod legal-destination-indexes \P [{:keys [board last-move]} [square-y square-x] piece]
+(defmethod pseudolegal-destination-indexes \P [{:keys [board last-move]} [square-y square-x] piece]
   (let [[forward-direction starting-row en-passant-row promotion-row]
         (if (black? piece)
           [+1 1 4 7]
@@ -150,7 +150,7 @@
                         [[jump-forward-y right-x] [square-y right-x]])
                      [forward-y right-x]))])))
 
-(defmethod legal-destination-indexes \K [{:keys [board turn] :as game-state} square-coords piece]
+(defmethod pseudolegal-destination-indexes \K [{:keys [board turn] :as game-state} square-coords piece]
   (let [[can-castle-ks can-castle-qs ks-squares qs-squares]
         (if (= turn \W)
           [(:white-can-castle-ks game-state)
@@ -213,7 +213,7 @@
               [last-m-from last-m-to last-moved-piece] (:last-move game-state)
               [[last-m-from-y _] [last-m-to-y last-m-to-x]]
               (map notation->coords [last-m-from last-m-to])]
-          ;; We assume here the moves being made are legal:
+          ;; We assume here the moves being made are (pseudo)legal:
           (if (and (= (piece-type last-moved-piece) \P)
                    (= (Math/abs (- last-m-from-y last-m-to-y)) 2)
                    (= last-m-to-y from-y)
@@ -224,7 +224,7 @@
     :else [new-board piece]))
 
 (defn move [game-state [from-pos to-pos]]
-  ;; This function always assumes the move is legal
+  ;; This function assumes the move is pseudolegal
   (let [[new-board new-piece]
         (let [[board' piece] (move-piece
                               (:board game-state) [from-pos to-pos])
@@ -237,3 +237,16 @@
                            (update :moves-cnt inc)
                            (assoc :last-move [from-pos to-pos new-piece]))]
     new-game-state))
+
+(defn king-in-check? [{:keys [turn board] :as game-state} king-color]
+  (let [king (if (= king-color \W) \K \k)
+        attacked-squares
+        (squares-attacked-by game-state (change-side king-color))]
+    (some #{king} (map #(get-piece board %) attacked-squares))))
+
+(defn king-in-check-after-move? [{:keys [turn board] :as game-state} mv]
+  (king-in-check? (move game-state mv) turn))
+
+(defn find-legal-moves [game-state]
+  (remove #(king-in-check-after-move? game-state %)
+          (find-pseudolegal-moves game-state)))
