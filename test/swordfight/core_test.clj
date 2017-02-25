@@ -1,21 +1,22 @@
 (ns swordfight.core-test
-  (:require [midje.sweet :refer [facts fact contains just truthy falsey]]
-        [swordfight.core :refer [initial-settings]]
-        [swordfight.game-rules :refer [initial-game-state move
-                                      find-pseudolegal-moves
-                                      find-legal-moves
-                                      king-in-check?
-                                      king-in-check-after-move?]]
-        [swordfight.ai :refer [compute-midgame-move]]))
+  (:require [midje.sweet :refer [facts fact contains just has-prefix
+                                 truthy falsey]]
+            [swordfight.core :refer [initial-settings]]
+            [swordfight.game-rules :refer [initial-game-state move
+                                           pseudolegal-moves
+                                           legal-moves
+                                           king-in-check?
+                                           king-in-check-after-move?]]
+            [swordfight.ai :refer [midgame-move]]))
 
 
 (defn pseudolegal-moves-cnt-in-turn
   ([turn-nr] (pseudolegal-moves-cnt-in-turn turn-nr initial-game-state))
   ([turn-nr game-state]
    (if (= turn-nr 1)
-     (count (find-pseudolegal-moves game-state))
+     (count (pseudolegal-moves game-state))
      (apply +
-            (for [piece-move (find-pseudolegal-moves game-state)]
+            (for [piece-move (pseudolegal-moves game-state)]
               (pseudolegal-moves-cnt-in-turn (dec turn-nr)
                                              (move game-state piece-move)))))))
 
@@ -58,7 +59,7 @@
         en-passant-move ["b4" "a3"]
         game-state {:board board :last-move ["a2" "a4" \P] :turn \B :moves-cnt 0}]
     (fact "Engine knows en passant moves to the left"
-      (find-legal-moves game-state) => (contains [en-passant-move]))
+      (legal-moves game-state) => (contains [en-passant-move]))
     (fact "Engine understands results of en passant moves to the left"
       (:board (move game-state en-passant-move))  =>  board'))
 
@@ -84,7 +85,7 @@
         en-passant-move ["b4" "c3"]
         game-state {:board board :last-move ["c2" "c4" \P] :turn \B :moves-cnt 0}]
     (fact "Engine knows en passant moves to the right"
-      (find-legal-moves game-state) => (contains [en-passant-move]))
+      (legal-moves game-state) => (contains [en-passant-move]))
     (fact "Engine understands results of en passant moves to the right"
       (:board (move game-state en-passant-move)) => board'))
 
@@ -101,7 +102,7 @@
         en-passant-move ["b4" "a3"]
         game-state {:board board :turn \B :last-move ["a2" "a4" \P] :moves-cnt 0}]
     (fact "Engine makes en passant moves in an obvious scenario"
-      (compute-midgame-move game-state) => en-passant-move))
+      (midgame-move game-state) => (has-prefix [en-passant-move])))
 
 
   (let [board
@@ -114,11 +115,12 @@
          [ \. \. \. \. \. \. \. \. ]
          [ \. \. \. \. \K \. \. \. ]]
         en-passant-move ["b4" "a3"]
+        forward-move ["b4" "b3"]
         game-state {:board board :turn \B :last-move ["a3" "a4" \P] :moves-cnt 0}]
     (fact "Engine checks the last move for en passant"
-      (find-legal-moves game-state) =not=> (contains [en-passant-move]))
+      (legal-moves game-state) =not=> (contains [en-passant-move]))
     (fact "Engine makes an obvious best move when en passant not possible"
-      (compute-midgame-move game-state) => ["b4" "b3"])))
+      (midgame-move game-state) => (has-prefix [forward-move]))))
 
 
 (facts "about castling"
@@ -144,7 +146,7 @@
                     :white-can-castle-qs true}
         white-castling-queenside ["e1" "c1"]]
     (fact "Engine considers white castling queenside"
-      (find-legal-moves game-state) =>
+      (legal-moves game-state) =>
       (contains [white-castling-queenside]))
     (fact "Engine understands the result of white castling queenside"
       (:board (move game-state white-castling-queenside)) => board'))
@@ -172,7 +174,7 @@
         game-state {:board board :turn \W :last-move ["a7" "a6" \p] :moves-cnt 0
                     :white-can-castle-ks true}]
     (fact "Engine considers white castling kingside"
-      (find-legal-moves game-state) =>
+      (legal-moves game-state) =>
       (contains [white-castling-kingside]))
     (fact "Engine understands the result of white castling kingside"
       (:board (move game-state white-castling-kingside)) => board'))
@@ -199,7 +201,7 @@
         game-state {:board board :turn \B :last-move ["b3" "c2" \Q] :moves-cnt 10
                     :black-can-castle-qs true}]
     (fact "Engine considers black castling queenside"
-      (find-legal-moves game-state) =>
+      (legal-moves game-state) =>
       (contains [black-castling-queenside]))
     (fact "Engine understands the result of black castling queenside"
       (:board (move game-state black-castling-queenside)) => board'))
@@ -226,7 +228,7 @@
         game-state {:board board :turn \B :last-move ["b3" "c2" \Q] :moves-cnt 10
                     :black-can-castle-ks true}]
     (fact "Engine considers black castling kingside"
-      (find-legal-moves game-state) => (contains [black-castling-kingside]))
+      (legal-moves game-state) => (contains [black-castling-kingside]))
     (fact "Engine understands the result of black castling kingside"
       (:board (move game-state black-castling-kingside)) => board')))
 
@@ -252,7 +254,7 @@
         promotion-move ["b2" "b1Q"]
         game-state {:board board :turn \B :last-move ["a5" "a6" \P] :moves-cnt 10}]
     (fact "Engine promotes pawns to queens"
-      (compute-midgame-move game-state) => promotion-move)
+      (midgame-move game-state) => (has-prefix [promotion-move]))
     (fact "Engine understands the result of pawn promotion to queen"
       (:board (move game-state promotion-move)) => board'))
 
@@ -277,7 +279,7 @@
         promotion-move ["c2" "c1N"]
         game-state {:board board :turn \B :last-move ["b3" "a2" \K] :moves-cnt 10}]
     (fact "Engine promotes pawns to knights"
-      (compute-midgame-move game-state) => promotion-move)
+      (midgame-move game-state) => (has-prefix [promotion-move]))
     (fact "Engine understands the result of pawn promotion to knight"
       (:board (move game-state promotion-move)) => board')))
 
@@ -304,7 +306,7 @@
         regular-pawn-attack ["g2" "h3"]
         game-state {:board board :turn \W :last-move ["h4" "h3" \p] :moves-cnt 10}]
     (fact "Engine chooses to attack with pawn"
-      (compute-midgame-move game-state) => regular-pawn-attack)
+      (midgame-move game-state) => (has-prefix [regular-pawn-attack]))
     (fact "Engine understands the result of pawn attack"
       (:board (move game-state regular-pawn-attack)) => board')))
 
@@ -327,7 +329,7 @@
     (fact "King in check - sanity test"
       (king-in-check? game-state \B) => falsey)
     (fact "When checkmated no legal moves are found"
-      (find-legal-moves game-state) => empty?))
+      (legal-moves game-state) => empty?))
 
   (let [board
         [[ \. \. \. \. \k \. \. \. ]
@@ -339,6 +341,6 @@
          [ \. \. \. \. \. \. \. \. ]
          [ \. \N \n \. \. \. \. \. ]]
         game-state {:board board :turn \W :last-move ["h8" "h4" \n] :moves-cnt 10}
-        legal-moves (find-legal-moves game-state)]
+        moves (legal-moves game-state)]
     (fact "A move cannot leave the king in check"
-      legal-moves => (just #{["d4" "c5"] ["d4" "d5"] ["d4" "e5"] ["d4" "c3"] ["d4" "e3"]}))))
+      moves => (just #{["d4" "c5"] ["d4" "d5"] ["d4" "e5"] ["d4" "c3"] ["d4" "e3"]}))))

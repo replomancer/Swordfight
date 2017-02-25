@@ -20,8 +20,52 @@
                   [\. \. \. \. \. \. \. \.]
                   [\. \. \. \. \. \. \. \.]])
 
+(def white \W)
+(def black \B)
+
+(def king \K)
+(def queen \Q)
+(def bishop \B)
+(def knight \N)
+(def rook \R)
+(def pawn \P)
+
+(def white-king \K)
+(def white-queen \Q)
+(def white-bishop \B)
+(def white-knight \N)
+(def white-rook \R)
+(def white-pawn \P)
+(def black-king \k)
+(def black-queen \q)
+(def black-bishop \b)
+(def black-knight \n)
+(def black-rook \r)
+(def black-pawn \p)
 (def empty-square \.)
+
+(defn piece-type [piece] (Character/toUpperCase piece))
+
+(def white-piece? #{white-king white-queen white-bishop white-knight
+                    white-rook white-pawn})
+(def black-piece? #{black-king black-queen black-bishop black-knight
+                    black-rook black-pawn})
 (def empty-square? #(= empty-square %))
+(def pawn? #(= (piece-type %) pawn))
+
+(defn ->piece [p-color p-type] (if (= p-color white)
+                                 p-type
+                                 (Character/toLowerCase p-type)))
+
+(defn color [piece] (cond (white-piece? piece) white
+                          (black-piece? piece) black))
+
+(defn opposite-color? [piece piece']
+  (let [colors (map color [piece piece'])]
+    (or (= colors [black white])
+        (= colors [white black]))))
+
+(def change-side {black white white black})
 
 (def notation->coords
   {"a8" [0 0] "b8" [0 1] "c8" [0 2] "d8" [0 3] "e8" [0 4] "f8" [0 5] "g8" [0 6] "h8" [0 7]
@@ -36,21 +80,6 @@
 (def coords->notation (map-invert notation->coords))
 
 (def all-coords (for [y (range 8) x (range 8)] [y x]))
-
-(defn piece-type [piece] (Character/toUpperCase piece))
-
-(def white? #{\R \N \B \Q \K \P})
-(def black? #{\r \n \b \q \k \p})
-
-(defn color [piece] (cond (white? piece) \W
-                          (black? piece) \B))
-
-(defn opposite-color? [piece piece']
-  (let [colors (map color [piece piece'])]
-    (or (= colors [\B \W])
-        (= colors [\W \B]))))
-
-(def change-side {\B \W \W \B})
 
 (defn on-board? [[y x]]
   (and (<= 0 y 7) (<= 0 x 7)))
@@ -74,11 +103,9 @@
 
 (defn promote-pawn [board promotion-notation]
   (let [position (subs promotion-notation 0 2)
-        yx (notation->coords position)
         new-piece-type (-> (subs promotion-notation 2 3)
                            (clojure.string/upper-case)
                            (get 0))
-        new-piece (if (black? (get-in board yx))
-                    (Character/toLowerCase new-piece-type)
-                    new-piece-type)]
+        new-piece (->piece (color (get-piece board position))
+                           new-piece-type)]
     [(put-piece board position new-piece) new-piece]))

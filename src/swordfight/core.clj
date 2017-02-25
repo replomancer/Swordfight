@@ -5,8 +5,7 @@
             [swordfight.game-rules :refer [initial-game-state]]))
 
 (def initial-settings {:xboard-mode false
-                       :debug-mode true
-                       :edition-current-color \W})
+                       :debug-mode true})
 
 (defn receive-command []
   (-> (read-line)
