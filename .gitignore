@@ -11,3 +11,6 @@ pom.xml
 .lein-plugins
 .lein-repl-history
 xboard.debug
+game.*
+log.*
+players.dat
