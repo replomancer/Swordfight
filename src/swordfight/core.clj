@@ -9,7 +9,6 @@
 
 (defn receive-command []
   (-> (read-line)
-      (.toLowerCase)
       (clojure.string/split #" ")))
 
 (defn send-command [[game-state game-settings cmd]]

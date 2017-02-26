@@ -8,7 +8,7 @@
         [swordfight.debug :only [show-game-state]]))
 
 (def cecp-msg-finished "Good bye.")
-(defn cecp-msg-illegal [mv] (str "Illegal move:" mv))
+(defn cecp-msg-illegal [mv] (str "Illegal move: " mv))
 (def cecp-msg-ok "")
 (defn cecp-msg-move [[from-pos to-pos]] (str "move " from-pos to-pos))
 (defn cmd-msg-ignored [cmd] (str "#\n#    COMMAND IGNORED: " cmd "\n#"))
@@ -85,6 +85,8 @@
             [(move game-state computed-move) (cecp-msg-move computed-move)])]
       [game-state' game-settings move-str])))
 
+(def move-notation-regexp #"[a-h][1-8][a-h][1-8][QNRB]?")
+
 (defn eval-command [game-state game-settings cmd-vector]
   (let [cmd (get cmd-vector 0)
         cmd-fun-mapping {"quit" quit
@@ -92,10 +94,9 @@
                          "edit" edit
                          "new" new}
         cmd-fun (cond (:edit-mode game-state) eval-edit-command
-                      (re-matches
-                       #"^[a-h][1-8][a-h][1-8]$" cmd) (fn [& args]
-                                                        (->> args
-                                                             (apply make-move)
-                                                             (apply engine-move)))
+                      (re-matches move-notation-regexp cmd) (fn [& args]
+                                                              (->> args
+                                                                   (apply make-move)
+                                                                   (apply engine-move)))
                       :else (get cmd-fun-mapping cmd ignore))]
     (cmd-fun game-state game-settings cmd-vector)))
