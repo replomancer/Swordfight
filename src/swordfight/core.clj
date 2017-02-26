@@ -8,8 +8,7 @@
                        :debug-mode true})
 
 (defn receive-command []
-  (-> (read-line)
-      (clojure.string/split #" ")))
+  (clojure.string/split (read-line) #" "))
 
 (defn send-command [[game-state game-settings cmd]]
   (println cmd)
