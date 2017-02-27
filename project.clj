@@ -1,4 +1,4 @@
-(defproject swordfight "0.7.0-SNAPSHOT"
+(defproject swordfight "0.8.0-SNAPSHOT"
   :description "Chess engine"
   :url "http://example.com/FIXME"
   :main swordfight.core
