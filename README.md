@@ -93,6 +93,9 @@ following a commonly used protocol, which is based on GNU Chess CLI and designed
 Tim Mann, the author of XBoard. It's quite possible that Swordfight will support
 Universal Chess Interface or other protocols in the future.
 
+Here's what [the author himself says about CECP](http://www.open-aurec.com/wbforum/WinBoard/engine-intf.html#4):
+> Originally, xboard was just trying to talk to the existing command-line interface of GNU Chess 3.1+ and 4, which was designed for people to type commands to. So the communication protocol is very ad-hoc. It might have been good to redesign it early on, but because xboard and GNU Chess are separate programs, I didn't want to force people to upgrade them together to versions that matched. I particularly wanted to keep new versions of xboard working with old versions of GNU Chess, to make it easier to compare the play of old and new gnuchess versions. I didn't foresee the need for a clean protocol to be used with other chess engines in the future.
+
 ## Did you know?
 
 The field of computer chess started with
