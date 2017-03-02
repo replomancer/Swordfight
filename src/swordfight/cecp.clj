@@ -49,7 +49,8 @@
           (when (:debug-mode @game-settings)
             (show-game-state @game-state))
           (when-not (:xboard-mode @game-settings)
-            (print "> "))))
+            (print "> "))
+          (flush)))
       (reset! thinking-mode false))))
 
 (defn xboard-mode [_ game-settings _]
