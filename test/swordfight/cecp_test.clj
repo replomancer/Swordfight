@@ -1,5 +1,6 @@
 (ns swordfight.cecp-test
   (:require [midje.sweet :refer [facts fact]]
+            [swordfight.ai :refer [hurried-move]]
             [swordfight.board :refer [black-king black-queen black-bishop
                                       black-knight black-rook black-pawn
                                       white-king white-queen white-bishop
@@ -42,7 +43,8 @@
     (fact "Engine in force mode rejects illegal moves."
       (with-out-str
         (eval-command game-state game-settings ["a1a8"]))
-      => "Illegal move: a1a8\n")))
+      => "Illegal move: a1a8\n")
+    (reset! hurried-move false)))
 
 (facts "about board edition"
   (let [game-state (atom initial-game-state)

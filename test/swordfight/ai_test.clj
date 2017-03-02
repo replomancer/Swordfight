@@ -60,7 +60,7 @@
          [ _ _ _ _ _ _ _ _ ]
          [ _ _ _ _ _ _ _ _ ]
          [ _ q _ _ K _ _ _ ]]
-        promotion-move ["b2" "b1Q"]
+        promotion-move ["b2" "b1q"]
         game-state {:board board :turn black :last-move ["a5" "a6" P] :moves-cnt 10}]
     (fact "Engine promotes pawns to queens"
       (midgame-move game-state) => (has-prefix [promotion-move])))
@@ -83,7 +83,7 @@
          [ P _ _ _ _ _ _ r ]
          [ K P _ _ _ _ _ _ ]
          [ R N n _ _ _ _ _ ]]
-        promotion-move ["c2" "c1N"]
+        promotion-move ["c2" "c1n"]
         game-state {:board board :turn black :last-move ["b3" "a2" K] :moves-cnt 10}]
     (fact "Engine promotes pawns to knights"
       (midgame-move game-state) => (has-prefix [promotion-move]))))
