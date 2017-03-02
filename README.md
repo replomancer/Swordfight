@@ -22,7 +22,7 @@ works with XBoard GUI.
    and set `lein run` as command. This will make Swordfight play as black.
 5. Play.
 
-Swordfight currently uses paralelized minimax algorithm with a very simple evaluation function. If you run `xboard -debug` there will be some debugging info in the `xboard.debug` file.
+Swordfight currently uses parallelized minimax algorithm with Tomasz Michniewski's [simplified evaluation function](http://chessprogramming.wikispaces.com/Simplified+evaluation+function). If you run `xboard -debug` there will be some debugging info in the `xboard.debug` file.
 
 ![XBoard window](https://raw.githubusercontent.com/evalapply/Swordfight/master/doc/mexican_defense.png)
 
