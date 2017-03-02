@@ -50,8 +50,8 @@
                                  ;; One target index translates to two moves.
                                  ;; Queen is almost always best. Knight is the only one
                                  ;; that is sometimes better.
-                                 [(str dest-notation "Q")
-                                  (str dest-notation "N")]
+                                 [(str dest-notation "q")
+                                  (str dest-notation "n")]
                                  ;; default case:
                                  [dest-notation])))
        (pseudolegal-destination-indexes game-state (notation->coords from-square) piece)))))

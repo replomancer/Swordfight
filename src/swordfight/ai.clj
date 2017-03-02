@@ -107,6 +107,8 @@
 
 (def minimax-depth 4)
 
+(def hurried-move (atom false))
+
 (defn best-move [{:keys [board turn] :as game-state} depth]
   (let [available-moves (if (= depth minimax-depth)
                           (legal-moves game-state)
@@ -124,7 +126,7 @@
              (mapping-fn
               (fn [piece-move]
                 (let [state-after-move (move game-state piece-move)
-                      move-value (if (= depth 1)
+                      move-value (if (or (= depth 1) @hurried-move)
                                    (eval-board (:board state-after-move))
                                    (second (best-move
                                             state-after-move
