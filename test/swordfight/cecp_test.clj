@@ -22,7 +22,7 @@
     (with-out-str
       (initial-communication)) => (str cecp-msg-myname "\n"))
   (fact "Engine sets name to \"Swordfight\" in a cecp-compatible way."
-    cecp-msg-myname => "feature myname=Swordfight"))
+    cecp-msg-myname => "feature myname=\"Swordfight\""))
 
 (facts "about force mode"
   (let [game-state (atom initial-game-state)

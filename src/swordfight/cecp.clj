@@ -20,7 +20,7 @@
 (defn cecp-msg-engine-thinking [cmd-vec]
   (str "Engine is thinking. " cmd-vec " was ignored.\n"
        "Allowed commands: \"?\", \"quit\", \"force\", \"xboard\" and \"new\"."))
-(def cecp-msg-myname (str "feature myname=" engine-name))
+(def cecp-msg-myname (str "feature myname=\"" engine-name "\""))
 
 (def thinking-mode (atom false))
 
