@@ -105,7 +105,7 @@
           (swap! game-state update :board put-piece pos piece))))))
 
 (defn go [game-state game-settings _]
-  (swap! game-state assoc :force-mode false)
+  (swap! game-settings assoc :force-mode false)
   (engine-move game-state game-settings))
 
 (defn new [game-state game-settings _]
