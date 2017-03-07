@@ -14,3 +14,4 @@ xboard.debug
 game.*
 log.*
 players.dat
+*.pgn
