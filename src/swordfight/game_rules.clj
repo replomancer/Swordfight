@@ -57,12 +57,10 @@
        (pseudolegal-destination-indexes game-state (notation->coords from-square) piece)))))
 
 (defn pseudolegal-moves [game-state]
-  (mapcat (fn [coords]
-            (let [pos-from (coords->notation coords)]
-              (for [pos-to (possible-moves-from-square game-state
-                                                       pos-from)]
-                [pos-from pos-to])))
-          all-coords))
+  (mapcat
+   (fn [pos-from] (map (fn [pos-to] [pos-from pos-to])
+                       (possible-moves-from-square game-state pos-from)))
+   (map coords->notation all-coords)))
 
 (defn squares-attacked-by [game-state attacker]
   (map second (pseudolegal-moves

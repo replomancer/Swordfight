@@ -109,33 +109,47 @@
 
 (def hurried-move (atom false))
 
-(defn best-move [{:keys [board turn] :as game-state} depth]
+(declare best-move)
+
+(defn move-evaluation [game-state alpha beta depth piece-move]
+  (let [state-after-move (move game-state piece-move)
+        move-value (if (or (= depth 1) @hurried-move)
+                     (eval-board (:board state-after-move))
+                     (second
+                      (best-move state-after-move alpha beta (dec depth))))]
+    [piece-move move-value]))
+
+(defn best-move [{:keys [board turn] :as game-state} alpha beta depth]
   (let [available-moves (if (= depth minimax-depth)
                           (legal-moves game-state)
                           ;; This is "cheating" which harms how well we predict
                           ;; but it's very useful for performance (speed)
                           (pseudolegal-moves game-state))
         mapping-fn ;; simple parallelization only for bigger cases
-        (if (> depth 2) pmap map)]
+        (if (< (- minimax-depth depth) 2) pmap map)]
     (if (empty? available-moves)
       (if (king-in-check? game-state turn)
         [[:checkmated turn] (checkmated-val turn)]
         [[:stalemated turn] (stalemated-val turn)])
-      (apply (if (= turn white) max-key min-key)
-             second  ;; move evaluation is second in pair
-             (mapping-fn
-              (fn [piece-move]
-                (let [state-after-move (move game-state piece-move)
-                      move-value (if (or (= depth 1) @hurried-move)
-                                   (eval-board (:board state-after-move))
-                                   (second (best-move
-                                            state-after-move
-                                            (dec depth))))]
-                  [piece-move move-value]))
-              available-moves)))))
+      ;;  YBWC (Young Brothers Wait Concept)
+      (let [first-move-evaluation
+            (move-evaluation game-state alpha beta depth
+                             (first available-moves))
+            [alpha' beta'] (if (= turn white)
+                             [(second first-move-evaluation) beta]
+                             [alpha (second first-move-evaluation)])]
+        (if (>= alpha' beta')
+          first-move-evaluation
+          (let [rest-evaluation
+                (mapping-fn #(move-evaluation game-state alpha' beta' depth %)
+                            (rest available-moves))
+                evaluated-moves (cons first-move-evaluation rest-evaluation)]
+            ;; move evaluation is second in pair
+            (apply (if (= turn white) max-key min-key) second
+                   evaluated-moves)))))))
 
 (defn midgame-move [game-state]
-  (best-move game-state minimax-depth))
+  (best-move game-state Integer/MIN_VALUE Integer/MAX_VALUE minimax-depth))
 
 (def early-game-turns 4)
 
