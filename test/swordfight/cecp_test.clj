@@ -1,5 +1,5 @@
 (ns swordfight.cecp-test
-  (:require [midje.sweet :refer [facts fact]]
+  (:require [midje.sweet :refer [facts fact namespace-state-changes]]
             [swordfight.ai :refer [hurried-move]]
             [swordfight.board :refer [black-king black-queen black-bishop
                                       black-knight black-rook black-pawn
@@ -15,7 +15,13 @@
             [swordfight.game-rules :refer [initial-game-state]]
             [swordfight.cecp :refer [cecp-msg-myname
                                      initial-communication
-                                     eval-command]]))
+                                     eval-command
+                                     thinking-mode]]))
+
+(defn cecp-facts-teardown []
+  (reset! hurried-move false)
+  (reset! thinking-mode false))
+(namespace-state-changes [(after :facts (cecp-facts-teardown))])
 
 (facts "about engine start"
   (fact "Engine sets the name during initial communication."
@@ -43,8 +49,7 @@
     (fact "Engine in force mode rejects illegal moves."
       (with-out-str
         (eval-command game-state game-settings ["a1a8"]))
-      => "Illegal move: a1a8\n")
-    (reset! hurried-move false)))
+      => "Illegal move: a1a8\n")))
 
 (facts "about board edition"
   (let [game-state (atom initial-game-state)
