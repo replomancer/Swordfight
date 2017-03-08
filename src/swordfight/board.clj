@@ -57,6 +57,9 @@
                                  p-type
                                  (Character/toLowerCase p-type)))
 
+(defn ->board [board-files-vector]
+  (mapv (fn [row] (vec (remove #(= % \ ) row))) board-files-vector))
+
 (defn color [piece] (cond (white-piece? piece) white
                           (black-piece? piece) black))
 
