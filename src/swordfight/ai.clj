@@ -11,8 +11,8 @@
                                       black-bishop black-knight black-pawn
                                       empty-square white black
                                       piece-type ->piece]]
-            [taoensso.tufte :refer [defnp p profiled profile]]
-            [swordfight.profiling]))
+            #_[taoensso.tufte :refer [defnp p profiled profile]]
+            #_[swordfight.profiling]))
 
 (def piece-value {white-king  20000 white-queen   900  white-rook  500
                   white-bishop  300 white-knight  300  white-pawn  100
