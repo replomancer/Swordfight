@@ -20,9 +20,6 @@
                   black-bishop -300 black-knight -300  black-pawn -100
                   empty-square 0})
 
-(def checkmated-val {white -100000  black 100000})
-(def stalemated-val {white  -50000  black 50000})
-
 ;;;  Tomasz Michniewski's  Simplified evaluation function
 (def white-bonus-eval-tables
   {white-pawn
@@ -105,6 +102,9 @@
                  (for [[y x] all-coords]
                    [(get-in board [y x]) [y x]]))))
 
+(def checkmated-val {white -100000  black 100000})
+(defn stalemated-val [board] (/ (eval-board board) 4))
+
 (def minimax-depth 4)
 
 (def hurried-move (atom false))
@@ -130,7 +130,7 @@
     (if (empty? available-moves)
       (if (king-in-check? game-state turn)
         [[:checkmated turn] (checkmated-val turn)]
-        [[:stalemated turn] (stalemated-val turn)])
+        [[:stalemated turn] (stalemated-val board)])
       ;;  YBWC (Young Brothers Wait Concept)
       (let [first-move-evaluation
             (move-evaluation game-state alpha beta depth

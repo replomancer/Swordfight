@@ -47,10 +47,10 @@
        (fn [[dest-y dest-x]] (let [dest-notation (coords->notation [dest-y dest-x])]
                                (if (and (pawn? piece) (#{0 7} dest-y))
                                  ;; This is pawn promotion.
-                                 ;; One target index translates to two moves.
-                                 ;; Queen is almost always best. Knight is the only one
-                                 ;; that is sometimes better.
+                                 ;; One target index translates to four moves.
                                  [(str dest-notation "q")
+                                  (str dest-notation "r")
+                                  (str dest-notation "b")
                                   (str dest-notation "n")]
                                  ;; default case:
                                  [dest-notation])))
