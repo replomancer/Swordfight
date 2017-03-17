@@ -213,7 +213,7 @@
               [last-m-from last-m-to last-moved-piece] (:last-move game-state)
               [[last-m-from-y _] [last-m-to-y last-m-to-x]]
               (map notation->coords [last-m-from last-m-to])]
-          ;; We assume here the moves being made are (pseudo)legal:
+          ;; We assume here the moves being made are pseudolegal:
           (if (and (pawn? last-moved-piece)
                    (= (Math/abs (- last-m-from-y last-m-to-y)) 2)
                    (= last-m-to-y from-y)

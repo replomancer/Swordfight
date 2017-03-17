@@ -10,7 +10,8 @@
                                       black-king black-queen black-rook
                                       black-bishop black-knight black-pawn
                                       empty-square white black
-                                      piece-type ->piece]]
+                                      piece-type ->piece move-piece
+                                      notation->coords]]
             #_[taoensso.tufte :refer [defnp p profiled profile]]
             #_[swordfight.profiling]))
 
@@ -102,6 +103,14 @@
                  (for [[y x] all-coords]
                    [(get-in board [y x]) [y x]]))))
 
+(defn board-value-delta [board board' move]
+  (let [[move-from move-to] move
+        [from-pos to-pos] [move-from (subs move-to 0 2)]
+        [from-idx to-idx] (map notation->coords [from-pos to-pos])]
+    (- (piece-val-with-bonus (get-in board' to-idx) to-idx)
+       (piece-val-with-bonus (get-in board to-idx) to-idx)
+       (piece-val-with-bonus (get-in board from-idx) from-idx))))
+
 (def checkmated-val {white -100000  black 100000})
 (defn stalemated-val [board] (/ (eval-board board) 4))
 
@@ -113,10 +122,23 @@
 
 (defn move-evaluation [game-state alpha beta depth piece-move]
   (let [state-after-move (move game-state piece-move)
+        extra-board-changes (not= (:board state-after-move)
+                                  (first (move-piece (:board game-state)
+                                                     piece-move)))
+        evaled-state-after-move (assoc state-after-move
+                                       :board-value
+                                       (if extra-board-changes
+                                         ;; full board reevaluation only after
+                                         ;; castling, en passant and promotions
+                                         (eval-board (:board state-after-move))
+                                         (+ (:board-value game-state)
+                                            (board-value-delta (:board game-state)
+                                                               (:board state-after-move)
+                                                               piece-move))))
         move-value (if (or (= depth 1) @hurried-move)
-                     (eval-board (:board state-after-move))
+                     (:board-value evaled-state-after-move)
                      (second
-                      (best-move state-after-move alpha beta (dec depth))))]
+                      (best-move evaled-state-after-move alpha beta (dec depth))))]
     [piece-move move-value]))
 
 (defn best-move [{:keys [board turn] :as game-state} alpha beta depth]
@@ -172,8 +194,10 @@
 
 (defn computer-move [game-state]
   (let [moves-cnt (:moves-cnt game-state)
+        board-value (eval-board (:board game-state))
+        evaled-board-game-state (assoc game-state :board-value board-value)
         [square-from square-to] (if (and (< moves-cnt early-game-turns)
                                          (false? (:edited game-state)))
-                                  (early-move game-state)
-                                  (midgame-move game-state))]
+                                  (early-move evaled-board-game-state)
+                                  (midgame-move evaled-board-game-state))]
     [square-from square-to]))
