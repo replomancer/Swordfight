@@ -1,6 +1,6 @@
 (ns swordfight.cecp
   (:use [swordfight.game-rules :only [initial-game-state move
-                                      possible-moves-from-square
+                                      legal-moves
                                       update-castling-info]]
         [swordfight.board :only [empty-board put-piece change-side white black
                                  empty-square ->piece]]
@@ -72,9 +72,7 @@
   (let [algebraic-notation (first cmd-vector)
         from-pos (subs algebraic-notation 0 2)
         to-pos (subs algebraic-notation 2)]
-    (if (some #{to-pos}
-              (possible-moves-from-square @game-state
-                                          from-pos))
+    (if (some #{[from-pos to-pos]} (legal-moves @game-state))
       (do
         (swap! game-state move [from-pos to-pos])
         (if-not (:force-mode @game-settings)
