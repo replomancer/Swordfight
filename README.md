@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/evalapply/Swordfight.svg?branch=master)](https://travis-ci.org/evalapply/Swordfight)
+[![Build Status](https://travis-ci.org/replomancer/Swordfight.svg?branch=master)](https://travis-ci.org/replomancer/Swordfight)
 
 # Swordfight
 
@@ -24,7 +24,7 @@ works with XBoard GUI.
 
 Swordfight currently uses parallelized alpha-beta pruning (YBWC) with Tomasz Michniewski's [simplified evaluation function](http://chessprogramming.wikispaces.com/Simplified+evaluation+function). If you run `xboard -debug` there will be some debugging info in the `xboard.debug` file.
 
-![XBoard window](https://raw.githubusercontent.com/evalapply/Swordfight/master/doc/mexican_defense.png)
+![XBoard window](https://raw.githubusercontent.com/replomancer/Swordfight/master/doc/mexican_defense.png)
 
 
 You can also play without a GUI by running `lein run` and using a command line interface
