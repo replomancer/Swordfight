@@ -12,11 +12,20 @@ works with XBoard GUI.
 
 ## Usage
 
+1. Download [the latest release jar file](https://github.com/replomancer/Swordfight/releases).
+2. Install [XBoard](https://www.gnu.org/software/xboard/) (should be available
+   in your favorite package manager).
+3. Run `xboard` and choose `Engine -> Load New 1st Engine`.
+   To add Swordfight as a new engine you need to set "Engine Directory" to
+   to the directory containing the jar file and type `java -jar <jar_filename>`
+   in "Engine Command". This will make Swordfight play as black.
+4. Play.
+
+Alternatively if you want to run the latest version from the repository:
 1. Download this repo.
 2. Install [Leiningen](http://leiningen.org/) (requires Java JDK version 6 or
    later).
-3. Install [XBoard](https://www.gnu.org/software/xboard/) (should be available
-   in your favorite package manager).
+3. Install [XBoard](https://www.gnu.org/software/xboard/).
 4. Run `xboard` and choose `Engine -> Load New 1st Engine`.
    To add Swordfight as a new engine you need to point to the repo directory
    and set `lein run` as command. This will make Swordfight play as black.
