@@ -5,7 +5,7 @@
             [swordfight.debug :as debug]))
 
 (def engine-name "Swordfight")
-(def cecp-msg-finished "Good bye.")
+(def cecp-msg-finished "# Good bye.")
 (defn cecp-msg-illegal [mv] (str "Illegal move: " mv))
 (defn cecp-msg-move [[from-pos to-pos]] (str "move " from-pos to-pos))
 (defn cecp-msg-ignored [cmd-vec] (str "#\n# Command ignored: " cmd-vec "\n#"))
@@ -14,8 +14,8 @@
                                  [:checkmated board/black] "1-0 {White mates}"
                                  "1/2-1/2 {Stalemate}"))
 (defn cecp-msg-engine-thinking [cmd-vec]
-  (str "Engine is thinking. " cmd-vec " was ignored.\n"
-       "Allowed commands: \"?\", \"quit\", \"force\", \"xboard\" and \"new\"."))
+  (str "# Engine is thinking. " cmd-vec " was ignored.\n"
+       "# Allowed commands: \"?\", \"quit\", \"force\", \"xboard\" and \"new\"."))
 (def cecp-msg-myname (str "feature myname=\"" engine-name "\""))
 
 (def thinking-mode (atom false))
