@@ -1,13 +1,13 @@
-(ns swordfight.game-rules-test
+(ns swordfight.rules-test
   (:require [midje.sweet :refer [facts fact contains just truthy falsey]]
             [swordfight.board :refer [white black ->board
                                       white-pawn black-pawn white-queen
                                       white-king black-knight]]
-            [swordfight.game-rules :refer [initial-game-state move
-                                           pseudolegal-moves
-                                           legal-moves
-                                           king-in-check?
-                                           king-in-check-after-move?]]))
+            [swordfight.rules :refer [initial-game-state move
+                                      pseudolegal-moves
+                                      legal-moves
+                                      king-in-check?
+                                      king-in-check-after-move?]]))
 
 (defn pseudolegal-moves-cnt-in-turn
   ([turn-nr] (pseudolegal-moves-cnt-in-turn turn-nr initial-game-state))

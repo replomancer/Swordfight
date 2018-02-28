@@ -3,7 +3,7 @@
   (:require [swordfight.cecp :refer [initial-communication
                                      read-command eval-command]]
             [swordfight.debug :refer [print-debug-output]]
-            [swordfight.game-rules :refer [initial-game-state]]))
+            [swordfight.rules :refer [initial-game-state]]))
 
 (def initial-game-settings {:xboard-mode false
                             :debug-mode true

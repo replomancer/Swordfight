@@ -1,9 +1,9 @@
 (ns swordfight.ai
-  (:require [swordfight.game-rules :refer [move legal-moves
-                                           pseudolegal-moves
-                                           squares-attacked-by
-                                           pieces-attacked-by-opponent
-                                           king-in-check?]]
+  (:require [swordfight.rules :refer [move legal-moves
+                                      pseudolegal-moves
+                                      squares-attacked-by
+                                      pieces-attacked-by-opponent
+                                      king-in-check?]]
             [swordfight.board :refer [all-coords change-side empty-square?
                                       white-king white-queen white-rook
                                       white-bishop white-knight white-pawn

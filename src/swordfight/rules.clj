@@ -1,4 +1,4 @@
-(ns swordfight.game-rules
+(ns swordfight.rules
   (:require  [clojure.set :refer [map-invert]]
              [swordfight.board :refer
               [initial-board all-coords empty-square?

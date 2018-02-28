@@ -3,7 +3,7 @@
             [swordfight.ai :refer [hurried-move]]
             [swordfight.board :refer [->board]]
             [swordfight.core :refer [initial-game-settings]]
-            [swordfight.game-rules :refer [initial-game-state]]
+            [swordfight.rules :refer [initial-game-state]]
             [swordfight.cecp :refer [cecp-msg-myname
                                      initial-communication
                                      eval-command
