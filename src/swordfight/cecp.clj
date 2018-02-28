@@ -16,7 +16,9 @@
 (defn cecp-msg-engine-thinking [cmd-vec]
   (str "# Engine is thinking. " cmd-vec " was ignored.\n"
        "# Allowed commands: \"?\", \"quit\", \"force\", \"xboard\" and \"new\"."))
-(def cecp-msg-myname (str "feature myname=\"" engine-name "\""))
+(def cecp-feature-myname (str "myname=\"" engine-name "\""))
+(def cecp-feature-no-signals-please "sigint=0 sigterm=0")
+(def cecp-feature-done "done=1")
 
 (def thinking-mode (atom false))
 
@@ -27,7 +29,8 @@
   (println (cecp-msg-ignored cmd-vector)))
 
 (defn initial-communication []
-  (println cecp-msg-myname))
+  (println "feature" cecp-feature-myname cecp-feature-no-signals-please
+           cecp-feature-done))
 
 (defn engine-move [game-state game-settings]
   (reset! thinking-mode true)

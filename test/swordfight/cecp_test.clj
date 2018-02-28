@@ -1,11 +1,10 @@
 (ns swordfight.cecp-test
-  (:require [midje.sweet :refer [facts fact namespace-state-changes]]
+  (:require [midje.sweet :refer [contains fact facts has-suffix namespace-state-changes]]
             [swordfight.ai :refer [hurried-move]]
             [swordfight.board :refer [->board]]
             [swordfight.core :refer [initial-game-settings]]
             [swordfight.rules :refer [initial-game-state]]
-            [swordfight.cecp :refer [cecp-msg-myname
-                                     initial-communication
+            [swordfight.cecp :refer [initial-communication
                                      eval-command
                                      thinking-mode]]))
 
@@ -15,11 +14,14 @@
 (namespace-state-changes [(after :facts (cecp-facts-teardown))])
 
 (facts "about engine start"
-  (fact "Engine sets the name during initial communication."
+  (fact "Engine sets the name to \"Swordfight\" during initial communication."
     (with-out-str
-      (initial-communication)) => (str cecp-msg-myname "\n"))
-  (fact "Engine sets name to \"Swordfight\" in a cecp-compatible way."
-    cecp-msg-myname => "feature myname=\"Swordfight\""))
+      (initial-communication)) => (contains "myname=\"Swordfight\""))
+  (fact "Engine requests for signal-free communication with the GUI."
+    (with-out-str
+      (initial-communication)) => (contains "sigint=0 sigterm=0"))
+  (fact "Engine sends done=1 in features."
+    (with-out-str (initial-communication)) => (has-suffix "done=1\n")))
 
 (facts "about force mode"
   (let [game-state (atom initial-game-state)
